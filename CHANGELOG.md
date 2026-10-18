@@ -1,5 +1,9 @@
 # Historique
 
+## 0.4.3 — 18 octobre 2026
+
+- Un lecteur qui refuse la vidéo (par exemple Android TV Remote : « Invalid media type: video ») est noté dans le journal (`player_refused_video`), n'est plus réessayé à chaque scène et n'est ni arrêté ni restauré inutilement.
+
 ## 0.4.2 — 18 octobre 2026
 
 - Correction : l'appareil de chaque zone est rattaché à l'appareil principal avec `via_device_id` (le paramètre `via_device` est déprécié dans Home Assistant et disparaîtra en 2027.8).

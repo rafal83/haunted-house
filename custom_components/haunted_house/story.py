@@ -17,6 +17,7 @@ WALK_SOUND = ContextVar("haunted_walk_sound", default="footsteps")
 class StoryFeatures:
     def init_story(self):
         self._story_task = None
+        self._video_rejected = set()  # Players that refused video playback; not retried until reload.
         self.test_choice = {}
         self._reserved_zones = set()
         self._branch_tasks = {}
@@ -289,8 +290,9 @@ class StoryFeatures:
         ids = self.usable("video_players", zone_id)
         if not zone["video_players"]:
             return
+        ids = [e for e in ids if e not in self._video_rejected]
         if not ids:
-            self.record("video_skipped", zone_id=zone_id, reason="no_available_player")
+            self.record("video_skipped", zone_id=zone_id, reason="no_available_player_or_video_refused")
             return
         url = self.bundled_video_url(zone_id)
         if not url:
@@ -301,6 +303,7 @@ class StoryFeatures:
         if state.state == "off" and not zone["video_power_on"]:
             self.record("video_skipped", zone_id=zone_id, entity_id=entity_id, reason="power_on_disabled")
             return
+        was_touched, was_video = entity_id in self._touched_media, entity_id in self._video_media
         self._touched_media.add(entity_id)
         self._video_media.add(entity_id)
         if state.state == "off":
@@ -310,9 +313,17 @@ class StoryFeatures:
             if not await self.call("media_player", "turn_on", entity_id):
                 return
             await self.pause(2)
+        if not await self.call("media_player", "play_media", entity_id,
+                               media_content_id=url, media_content_type="video"):
+            # e.g. Android TV Remote only launches apps/URLs. Do not stop or restore a player that played nothing.
+            self._video_rejected.add(entity_id)
+            if not was_touched:
+                self._touched_media.discard(entity_id)
+            if not was_video:
+                self._video_media.discard(entity_id)
+            self.record("video_skipped", zone_id=zone_id, entity_id=entity_id, reason="player_refused_video")
+            return
         try:
-            await self.call("media_player", "play_media", entity_id,
-                            media_content_id=url, media_content_type="video")
             await self.pause(6)
         finally:
             await self.call("media_player", "media_stop", entity_id)

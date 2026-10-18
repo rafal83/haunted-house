@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.4.2.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.4.3.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 48 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 49 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -156,7 +156,7 @@ Aucune URL à renseigner : les sons et vidéos sont **fournis par l’intégrati
 
 Chaque scène choisit au hasard parmi plusieurs variantes. Les profils Familiale n’utilisent ni cris ni grondements. En mode enfants, la voix TTS configurée reste prioritaire sur le carillon inclus.
 
-**Vidéos.** Dès qu’une TV ou un projecteur est choisi dans la zone, les scènes Apparition, Maison hantée et Citrouille jouent une de leurs vidéos environ six secondes, puis l’arrêtent. Le lecteur doit accepter `media_player.play_media` avec un contenu vidéo et pouvoir joindre l’URL. Une TV qui expose seulement marche/arrêt ou changement de source ne suffit pas. Une TV éteinte est ignorée sauf si **Autoriser l’allumage** est activé. Si elle a été allumée par le spectacle, elle est rééteinte lors de la restauration de session ; sa source initiale est aussi rappelée lorsqu’elle est connue. Une application ou une émission antérieure n’est pas reprise. Quand une vidéo n’est pas jouée, le journal contient `video_skipped` avec la raison (aucun lecteur disponible, allumage non autorisé, URL de base introuvable).
+**Vidéos.** Dès qu’une TV ou un projecteur est choisi dans la zone, les scènes Apparition, Maison hantée et Citrouille jouent une de leurs vidéos environ six secondes, puis l’arrêtent. Le lecteur doit accepter `media_player.play_media` avec un contenu vidéo et pouvoir joindre l’URL. Une TV qui expose seulement marche/arrêt ou changement de source ne suffit pas. L’entité de l’intégration **Android TV Remote** ne convient pas non plus : elle ne lance que des chaînes, URL ou applications et répond « Invalid media type: video ». Choisir à la place l’entité **Cast** (Chromecast intégré) ou **DLNA** de la même TV. Quand un lecteur refuse la vidéo, le journal contient `video_skipped` avec `player_refused_video`, et ce lecteur n’est plus essayé jusqu’au rechargement de l’intégration (il n’est ni arrêté ni restauré inutilement). Une TV éteinte est ignorée sauf si **Autoriser l’allumage** est activé. Si elle a été allumée par le spectacle, elle est rééteinte lors de la restauration de session ; sa source initiale est aussi rappelée lorsqu’elle est connue. Une application ou une émission antérieure n’est pas reprise. Quand une vidéo n’est pas jouée, le journal contient `video_skipped` avec la raison (aucun lecteur disponible, allumage non autorisé, URL de base introuvable).
 
 | Média | Fichiers | Origine |
 |---|---|---|
@@ -251,7 +251,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-48 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+49 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les cinq vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

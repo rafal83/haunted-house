@@ -4,7 +4,7 @@ from copy import deepcopy
 import time
 import types
 import unittest
-from test_engine import make, State, complete
+from test_engine import make, State, complete, engine_mod
 from haunted_house_test.model import normalize, validate_zone
 from haunted_house_test.story import CURRENT_ZONE, CURRENT_SCENE
 
@@ -150,6 +150,23 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(restored, enabled)
             self.assertTrue(engine.running)
             await engine.stop()
+
+    async def test_player_that_refuses_video_is_left_alone_and_not_retried(self):
+        opts = normalize({'lights': ['light.a']})
+        opts['zones'][0].update(video_players=['media_player.tv'])
+        engine, hass, states = make(opts)
+        states['media_player.tv'] = State('idle', volume_level=.3)
+        hass.fail.add('media_player.tv')
+        await engine.start()
+        with self.assertLogs(engine_mod.__name__, level='ERROR'):
+            await engine._video('maison')
+        self.assertNotIn('media_player.tv', engine._touched_media)
+        self.assertEqual(engine.history[-1]['reason'], 'player_refused_video')
+        count = len(hass.calls)
+        await engine._video('maison')
+        self.assertEqual(len(hass.calls), count)  # no second attempt, no media_stop
+        await engine.stop()
+        self.assertFalse(any(c[1] == 'media_stop' and c[2]['entity_id'] == 'media_player.tv' for c in hass.calls))
 
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
