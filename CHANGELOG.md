@@ -1,5 +1,10 @@
 # Historique
 
+## 0.3.3 — 18 octobre 2026
+
+- Liste **Scène de test** par zone sur la page de l'appareil : choisir une scène puis utiliser les boutons Aperçu/Tester, sans passer par Configurer.
+- Le modèle affiché de l'appareil suit la version du manifest.
+
 ## 0.3.2 — 18 octobre 2026
 
 - Correction : les attributs sans valeur (`effect`, `volume_level`, `source` à `None`) ne sont plus enregistrés ni renvoyés à la restauration. Ils faisaient échouer la restauration à chaque fois et bloquaient les tests (« Arrêtez la session et terminez la restauration »).

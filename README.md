@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.3.2.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.3.3.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 44 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 45 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -172,7 +172,7 @@ Ce sont des démonstrations procédurales originales, pas des enregistrements de
 
 **Configurer → Prévisualiser et tester une scène** propose une zone et une scène, affiche la scène effective et les appareils sélectionnés, puis permet d’exécuter le test. Sans lancer le test, aucune commande n’est envoyée.
 
-Des boutons **Aperçu NOM** et **Tester NOM** existent aussi pour chaque zone. Ils concernent sa scène de déclenchement. L’aperçu est disponible dans les attributs du capteur État. Pour choisir une autre scène et voir son aperçu dans le même parcours, utiliser le menu Configurer.
+Depuis la page de l’appareil **Haunted House**, sans passer par Configurer : choisir la scène dans la liste **Scène de test NOM** (Bougies, Cimetière, Orage, Apparition, Maison hantée, Sons spatialisés, Enfants, Poursuite, Retrait), puis appuyer sur **Aperçu NOM (scène choisie)** ou **Tester NOM (scène choisie)**. Par défaut la liste affiche la scène de déclenchement de la zone ; le choix est oublié au rechargement de l’intégration. Le test garde les mêmes règles : session arrêtée, 20 secondes maximum, restauration automatique. L’aperçu est disponible dans les attributs du capteur État.
 
 Le test est une session isolée, sans parcours automatique, réaction aux capteurs, progression ou autres zones. Il refuse de démarrer tant que le spectacle est actif ou qu’une restauration reste en attente. Il sauvegarde les appareils de sa zone, joue la scène pendant 20 secondes maximum puis restaure, y compris après interruption. Le bouton global d’arrêt peut l’interrompre.
 
@@ -250,7 +250,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-44 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+45 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les trois vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

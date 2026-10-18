@@ -134,6 +134,16 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(engine.snapshot)
         self.assertEqual(engine.last_effect, 'idle')
 
+    async def test_chosen_scene_overrides_trigger_scene_for_tests(self):
+        engine, hass, states = make({'lights': ['light.a']})
+        self.assertEqual(engine.chosen_scene('maison'), engine.zones['maison']['trigger_scene'])
+        engine.choose_scene('maison', 'storm')
+        self.assertEqual(engine.chosen_scene('maison'), 'storm')
+        with self.assertRaises(ValueError):
+            engine.choose_scene('maison', 'nope')
+        report = await engine.test_scene('maison', engine.chosen_scene('maison'))
+        self.assertEqual(report['preview']['scene'], 'storm')
+
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
         opts['ghost_route'] = ['salon', 'maison']

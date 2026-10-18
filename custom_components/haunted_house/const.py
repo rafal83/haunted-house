@@ -1,6 +1,6 @@
 """Stable configuration and scene vocabulary."""
 DOMAIN = "haunted_house"
-PLATFORMS = ["switch", "button", "sensor"]
+PLATFORMS = ["switch", "button", "sensor", "select"]
 ENTITY_KEYS = {"lights": "light", "covers": "cover", "media_players": "media_player", "switches": "switch"}
 SCENES = ["candle", "graveyard", "storm", "apparition", "haunted"]
 INTENSITIES = {
@@ -34,3 +34,7 @@ MEDIA_URL_PATH = "/haunted_house_media"
 BUNDLED_AUDIO = {"candle": "drone", "graveyard": "drone", "storm": "thunder", "apparition": "whisper",
                  "haunted": "drone", "footsteps": "footsteps", "whisper": "whisper", "knock": "knock",
                  "laugh": "laugh", "kids": "kids"}
+
+SCENE_LABELS = {"candle": "Bougies", "graveyard": "Cimetière", "storm": "Orage", "apparition": "Apparition",
+                "haunted": "Maison hantée", "spatial": "Sons spatialisés", "kids": "Enfants",
+                "pursuit": "Poursuite", "retreat": "Retrait"}

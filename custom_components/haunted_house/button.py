@@ -58,11 +58,11 @@ class TestButton(HauntedEntity, ButtonEntity):
     def __init__(self, engine, zone, preview):
         self.zone_id, self._preview = zone["id"], preview
         super().__init__(engine, f"{'preview' if preview else 'test'}_{zone['id']}",
-                         f"{'Aperçu' if preview else 'Tester'} {zone['name']}",
+                         f"{'Aperçu' if preview else 'Tester'} {zone['name']} (scène choisie)",
                          "mdi:eye" if preview else "mdi:play-circle-outline")
 
     async def async_press(self):
-        scene = self.engine.zones[self.zone_id]["trigger_scene"]
+        scene = self.engine.chosen_scene(self.zone_id)
         if self._preview:
             self.engine.preview(self.zone_id, scene)
         else:

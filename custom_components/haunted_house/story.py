@@ -16,6 +16,7 @@ WALK_SOUND = ContextVar("haunted_walk_sound", default="footsteps")
 class StoryFeatures:
     def init_story(self):
         self._story_task = None
+        self.test_choice = {}
         self._reserved_zones = set()
         self._branch_tasks = {}
         self._reaction_tasks = {}
@@ -64,6 +65,16 @@ class StoryFeatures:
         zone = self.zones[zone_id]
         profile = zone["intensity"] if zone["intensity"] != "inherit" else self.options["intensity"]
         return zone["kids_mode"] or profile == "kids" or CURRENT_SCENE.get() == "kids"
+
+    def chosen_scene(self, zone_id):
+        """Scene picked on the zone's test selector, or its trigger scene."""
+        return self.test_choice.get(zone_id) or self.zones[zone_id]["trigger_scene"]
+
+    def choose_scene(self, zone_id, scene):
+        if zone_id not in self.zones or scene not in SCENES:
+            raise ValueError("Unknown zone or scene")
+        self.test_choice[zone_id] = scene
+        self.notify()
 
     def preview(self, zone_id, scene):
         if zone_id not in self.zones or scene not in SCENES:
