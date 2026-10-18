@@ -3,10 +3,11 @@
   "name": "Haunted House",
   "codeowners": ["@rafal83"],
   "config_flow": true,
+  "dependencies": ["http"],
   "documentation": "https://github.com/rafal83/haunted-house",
   "integration_type": "service",
   "iot_class": "calculated",
   "issue_tracker": "https://github.com/rafal83/haunted-house/issues",
   "requirements": [],
-  "version": "0.3.0"
+  "version": "0.3.1"
 }

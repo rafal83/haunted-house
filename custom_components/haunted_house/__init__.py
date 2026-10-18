@@ -1,10 +1,12 @@
 """Haunted House v3 entry, service and event lifecycle."""
+from pathlib import Path
 import voluptuous as vol
+from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import SupportsResponse
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.event import async_track_state_change_event
-from .const import DOMAIN, PLATFORMS, SCENES, SERVICES
+from .const import DOMAIN, MEDIA_URL_PATH, PLATFORMS, SCENES, SERVICES
 from .engine import HauntedEngine
 from .model import normalize
 
@@ -18,9 +20,14 @@ async def async_migrate_entry(hass, entry):
 
 
 async def async_setup_entry(hass, entry):
+    domain_data = hass.data.setdefault(DOMAIN, {})
+    if not domain_data.get("media_registered"):
+        await hass.http.async_register_static_paths(
+            [StaticPathConfig(MEDIA_URL_PATH, str(Path(__file__).parent / "media"), False)])
+        domain_data["media_registered"] = True
     engine = HauntedEngine(hass, entry)
     await engine.load()
-    hass.data.setdefault(DOMAIN, {})[entry.entry_id] = engine
+    domain_data[entry.entry_id] = engine
 
     async def service(call):
         try:

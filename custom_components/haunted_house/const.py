@@ -28,3 +28,9 @@ ZONE_DEFAULTS["scenes"] = list(SCENES)
 ZONE_DEFAULTS.update({f"sound_{tag}": "" for tag in AUDIO_TAGS})
 ENTITY_KEYS["video_players"] = "media_player"
 SERVICES = ["start", "stop", "scare", "play_scene", "ghost_walk", "preview_scene", "test_scene", "history"]
+
+# Media shipped inside the integration, served at MEDIA_URL_PATH and used when a bank is empty.
+MEDIA_URL_PATH = "/haunted_house_media"
+BUNDLED_AUDIO = {"candle": "drone", "graveyard": "drone", "storm": "thunder", "apparition": "whisper",
+                 "haunted": "drone", "footsteps": "footsteps", "whisper": "whisper", "knock": "knock",
+                 "laugh": "laugh", "kids": "kids"}

@@ -8,7 +8,7 @@ import tempfile
 import wave
 from PIL import Image, ImageDraw
 
-OUT = Path(__file__).resolve().parents[1] / 'www' / 'haunted_house'
+OUT = Path(__file__).resolve().parents[1] / 'custom_components' / 'haunted_house' / 'media'
 OUT.mkdir(parents=True, exist_ok=True)
 SR = 22050
 

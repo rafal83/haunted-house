@@ -1,6 +1,6 @@
 # Haunted House v3 👻 — Home Assistant
 
-**Version 0.3.0.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.3.1.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
 **Statut : prototype. Les 42 tests de comportement et de séquencement utilisent des doubles des APIs HA. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
@@ -11,13 +11,12 @@
 1. HACS → menu ⋮ → **Dépôts personnalisés**.
 2. Ajouter `https://github.com/rafal83/haunted-house` avec le type **Intégration**.
 3. Chercher **Haunted House**, **Télécharger**, puis redémarrer Home Assistant.
-4. Les médias de démonstration (`www/haunted_house`) ne sont pas installés par HACS : les copier à la main dans `/config/www/haunted_house`.
+4. Les sons sont inclus dans l’intégration : rien d’autre à copier (voir « Sons et vidéos inclus »).
 
 ### Manuellement
 
 1. Si une ancienne version est installée, arrêter le mode hanté puis utiliser **Arrêter et restaurer**. Terminer toute récupération en attente.
 2. Copier ou remplacer le dossier `custom_components/haunted_house` dans `/config/custom_components/haunted_house`. Garder la configuration et les données `.storage`.
-3. Pour les médias de démonstration, copier le dossier `www/haunted_house` dans `/config/www/haunted_house`.
 4. Redémarrer Home Assistant.
 5. Nouvelle installation : **Paramètres → Appareils et services → Ajouter une intégration → Haunted House**. Mise à jour : ouvrir l’intégration existante.
 
@@ -28,7 +27,7 @@ Le paquet s’installe via HACS (dépôt personnalisé) ou manuellement. Il n’
 ## Démarrage rapide
 
 1. Créer une zone avec une ou deux lampes, puis ajouter une enceinte.
-2. Dans le second formulaire, renseigner la banque Orage : `http://ADRESSE_HA:8123/local/haunted_house/thunder.wav`.
+2. Dans le second formulaire, laisser les banques vides pour utiliser les sons inclus, ou renseigner vos propres URL.
 3. Depuis **Configurer → Prévisualiser et tester une scène**, sélectionner cette zone et **Orage**. Vérifier l’aperçu puis lancer le test. Il s’arrête après 20 secondes maximum et restaure les états.
 4. Ajouter les autres pièces, puis définir **Histoire et parcours**.
 5. Activer **Mode hanté**. Utiliser le bouton **Faire circuler le fantôme** pour lancer un parcours immédiatement.
@@ -142,24 +141,26 @@ L’intégration ignore les événements portant son propre contexte HA. Elle ne
 
 ## TV, projecteur et médias inclus
 
+**Sons inclus, sans configuration.** Les sons sont servis par l’intégration elle-même sur `/haunted_house_media/`. Si une banque audio est vide (zone, puis réglage général), le son inclus correspondant est joué : orage pour Orage, pas, coups, souffle, rire, enfants, et ambiance pour Bougies, Cimetière et Maison hantée. L’adresse de base est l’URL interne de Home Assistant (**Paramètres → Système → Réseau**) ; elle doit être joignable par les enceintes. En mode enfants, la voix TTS configurée reste prioritaire sur le carillon inclus. Les vidéos restent à activer explicitement en collant leur URL.
+
 Le lecteur sélectionné doit accepter `media_player.play_media` avec un contenu vidéo et pouvoir joindre son URL. Une TV qui expose seulement marche/arrêt ou changement de source ne suffit pas. Il n’y a pas d’intégration spécifique de protocole TV ni de contournement des limitations du lecteur.
 
 Renseigner **Vidéos inquiétantes** et **Vidéos enfants** séparément. Les scènes Apparition/Maison hantée jouent une vidéo environ six secondes, puis l’arrêtent. Une TV éteinte est ignorée sauf si **Autoriser l’allumage** est activé. Si elle a été allumée par le spectacle, elle est rééteinte lors de la restauration de session ; sa source initiale est aussi rappelée lorsqu’elle est connue. Une application ou une émission antérieure n’est pas reprise.
 
-Le dossier `www/haunted_house` contient :
+Le dossier `custom_components/haunted_house/media` contient :
 
 | Banque / usage | URL après remplacement de `ADRESSE_HA` |
 |---|---|
-| Orage | `http://ADRESSE_HA:8123/local/haunted_house/thunder.wav` |
-| Pas | `http://ADRESSE_HA:8123/local/haunted_house/footsteps.wav` |
-| Coups | `http://ADRESSE_HA:8123/local/haunted_house/knock.wav` |
-| Souffle | `http://ADRESSE_HA:8123/local/haunted_house/whisper.wav` |
-| Rire électronique | `http://ADRESSE_HA:8123/local/haunted_house/laugh.wav` |
-| Ambiance | `http://ADRESSE_HA:8123/local/haunted_house/drone.wav` |
-| Enfants | `http://ADRESSE_HA:8123/local/haunted_house/kids.wav` |
-| Fantôme | `http://ADRESSE_HA:8123/local/haunted_house/apparition.mp4` |
-| Faux écran de surveillance | `http://ADRESSE_HA:8123/local/haunted_house/surveillance.mp4` |
-| Citrouille animée | `http://ADRESSE_HA:8123/local/haunted_house/kids.mp4` |
+| Orage | `http://ADRESSE_HA:8123/haunted_house_media/thunder.wav` |
+| Pas | `http://ADRESSE_HA:8123/haunted_house_media/footsteps.wav` |
+| Coups | `http://ADRESSE_HA:8123/haunted_house_media/knock.wav` |
+| Souffle | `http://ADRESSE_HA:8123/haunted_house_media/whisper.wav` |
+| Rire électronique | `http://ADRESSE_HA:8123/haunted_house_media/laugh.wav` |
+| Ambiance | `http://ADRESSE_HA:8123/haunted_house_media/drone.wav` |
+| Enfants | `http://ADRESSE_HA:8123/haunted_house_media/kids.wav` |
+| Fantôme | `http://ADRESSE_HA:8123/haunted_house_media/apparition.mp4` |
+| Faux écran de surveillance | `http://ADRESSE_HA:8123/haunted_house_media/surveillance.mp4` |
+| Citrouille animée | `http://ADRESSE_HA:8123/haunted_house_media/kids.mp4` |
 
 Ce sont des démonstrations procédurales originales, pas des enregistrements de voix ou de vraies caméras. Sons de deux secondes en WAV mono ; vidéos muettes de six secondes en MP4 H.264. Le script `scripts/generate_assets.py` permet de les recréer avec Pillow et ffmpeg sur la machine de développement ; ces dépendances ne sont pas nécessaires dans HA.
 

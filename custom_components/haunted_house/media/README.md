@@ -1,7 +1,8 @@
-# Médias de démonstration
+# Médias inclus
 
-Copier ce dossier dans `/config/www/haunted_house/`. Il devient accessible via :
-`http://ADRESSE_HA:8123/local/haunted_house/NOM_DU_FICHIER`.
+Ces fichiers sont servis par l’intégration à l’adresse `http://ADRESSE_HA:8123/haunted_house_media/NOM_DU_FICHIER`. Aucune copie dans `/config/www` n’est nécessaire.
+
+Les sons sont joués automatiquement quand une banque audio est vide. Les vidéos sont à ajouter explicitement dans les champs vidéo.
 
 | Fichier | Usage |
 |---|---|

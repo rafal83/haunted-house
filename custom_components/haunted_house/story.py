@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 import random
 import time
 from homeassistant.helpers.storage import Store
-from .const import INTENSITIES, ENTITY_KEYS, SCENES
+from .const import BUNDLED_AUDIO, ENTITY_KEYS, INTENSITIES, MEDIA_URL_PATH, SCENES
 from .model import trigger_fired
 
 CURRENT_ZONE = ContextVar("haunted_zone", default=None)
@@ -220,6 +220,19 @@ class StoryFeatures:
             text = zone.get(f"sound_{tag}", "").strip() or zone["sounds"].strip() or self.options["sounds"]
         return [line.strip() for line in text.splitlines() if line.strip()]
 
+    def bundled_url(self, name):
+        """URL of a sound shipped with the integration, or None when no HA base URL is available."""
+        if not name:
+            return None
+        try:  # Imported lazily so the module stays importable outside a full HA install.
+            from homeassistant.helpers.network import NoURLAvailableError, get_url
+        except ImportError:
+            return None
+        try:
+            return f"{get_url(self.hass, prefer_external=False)}{MEDIA_URL_PATH}/{name}.wav"
+        except NoURLAvailableError:
+            return None
+
     async def _play_audio(self, zone_id, tag, entity_id=None):
         ids = self.usable("media_players", zone_id)
         if not ids:
@@ -228,7 +241,11 @@ class StoryFeatures:
         urls = self.audio_urls(zone_id, tag)
         kids = self.is_kids(zone_id) or tag == "kids"
         messages = [s.strip() for s in self.options["kids_messages"].splitlines() if s.strip()]
-        if not urls and not (kids and self.options["tts_entity"] and messages):
+        tts = kids and self.options["tts_entity"] and messages
+        if not urls and not tts:
+            bundled = self.bundled_url(BUNDLED_AUDIO.get(tag))
+            urls = [bundled] if bundled else []
+        if not urls and not tts:
             return
         self._touched_media.add(entity_id)
         await self.save()

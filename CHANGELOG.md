@@ -1,5 +1,12 @@
 # Historique
 
+## 0.3.1 — 18 octobre 2026
+
+- Sons et vidéos servis par l’intégration (`/haunted_house_media/`) : plus de copie manuelle dans `www`.
+- Une banque audio vide utilise le son inclus correspondant ; la voix TTS reste prioritaire en mode enfants.
+- Icône de l’intégration (requise par la validation HACS).
+- Validation hassfest et HACS automatique sur GitHub.
+
 ## 0.3.0 — 17 octobre 2026
 
 - Parcours du fantôme entre pièces avec son et lumière séquencés.

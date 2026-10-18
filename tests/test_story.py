@@ -3,6 +3,7 @@ import asyncio
 from copy import deepcopy
 import time
 import types
+import sys
 import unittest
 from test_engine import make, State, complete
 from haunted_house_test.model import normalize, validate_zone
@@ -84,6 +85,31 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         await complete(engine)
         self.assertEqual([c[2]['media_content_id'] for c in hass.calls if c[1] == 'play_media'], ['http://example.test/thunder.wav'])
         await engine.stop()
+
+    async def test_empty_bank_falls_back_to_bundled_sound(self):
+        network = types.ModuleType('homeassistant.helpers.network')
+        network.NoURLAvailableError = type('NoURLAvailableError', (Exception,), {})
+        network.get_url = lambda hass, prefer_external=False: 'http://ha.local:8123'
+        sys.modules['homeassistant.helpers.network'] = network
+        try:
+            opts = normalize({'media_players': ['media_player.a']})
+            opts['tts_entity'] = 'tts.piper'
+            opts['zones'].append(normalize({'media_players': ['media_player.b']})['zones'][0] | {'id': 'kids', 'name': 'Kids', 'kids_mode': True})
+            engine, hass, states = make(opts)
+            states['media_player.b'] = State('idle', volume_level=.4)
+            await engine.start()
+            await engine.effect(zone_id='maison', scene='storm')
+            await complete(engine)
+            urls = [c[2]['media_content_id'] for c in hass.calls if c[1] == 'play_media']
+            self.assertEqual(urls, ['http://ha.local:8123/haunted_house_media/thunder.wav'])
+            hass.calls.clear()
+            await engine.effect(zone_id='kids', scene='kids')
+            await complete(engine, 'kids')
+            self.assertTrue(any(c[0] == 'tts' for c in hass.calls))  # TTS keeps priority over the bundled chime
+            self.assertFalse(any(c[1] == 'play_media' for c in hass.calls))
+            await engine.stop()
+        finally:
+            del sys.modules['homeassistant.helpers.network']
 
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
