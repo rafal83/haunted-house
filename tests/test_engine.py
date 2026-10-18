@@ -110,6 +110,7 @@ def make(options=None):
     engine._real_run = engine._run
     engine._run = standby
     engine.pause = fast_pause
+    engine.verify_delay = 0
     return engine, hass, states
 
 

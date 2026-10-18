@@ -1,6 +1,6 @@
 """Pure configuration migration/validation helpers, independent of HA."""
 from copy import deepcopy
-from .const import DEFAULTS, ZONE_DEFAULTS, ENTITY_KEYS, INTENSITIES, LEGACY_SCENES, SCENES
+from .const import DEFAULTS, ZONE_DEFAULTS, ENTITY_KEYS, INTENSITIES, LEGACY_SCENES, POWER_DOMAINS, SCENES
 
 
 def normalize(options):
@@ -41,6 +41,9 @@ def validate_zone(zone, other_zones):
         return {"scenes": "invalid_scene"}
     if zone.get("trigger_scene") not in SCENES:
         return {"trigger_scene": "invalid_scene"}
+    power = zone.get("video_power_entity", "")
+    if power and power.split(".", 1)[0] not in POWER_DOMAINS:
+        return {"video_power_entity": "invalid_entity"}
     if not set(zone.get("reactive_lights", [])) <= set(zone.get("lights", [])):
         return {"reactive_lights": "reactive_subset"}
     if zone.get("intensity", "inherit") not in ["inherit", *INTENSITIES]:

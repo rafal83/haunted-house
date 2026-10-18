@@ -33,6 +33,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
         self._effects = {}
         self._lock = asyncio.Lock()
         self._store_lock = asyncio.Lock()
+        self.verify_delay = 2.5  # Seconds a light gets to settle before its restored state is checked.
         self._commands = asyncio.Semaphore(4)
         self._last_cover = {}
         self._last_scare = {}
@@ -169,6 +170,9 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             self._reserved_zones.clear()
             self._testing = False
             await self._restore()
+            for power_id in list(self._powered_extra):  # Safety net: a TV woken by the show goes back to sleep.
+                if await self.call(power_id.split(".", 1)[0], "turn_off", power_id):
+                    self._powered_extra.discard(power_id)
             self.record("session_stopped", restoration_pending=bool(self.snapshot))
             await self._history_store.async_save({"events": self.history})
             self.last_effect = "recovery_pending" if self.snapshot else "idle"
@@ -199,6 +203,8 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
                          "hs": "hs_color", "color_temp": "color_temp_kelvin"}.get(attrs.get("color_mode"))
             if color_key and color_key in attrs:
                 data[color_key] = attrs[color_key]
+            if attrs.get("color_mode") == "white":  # Plain brightness would keep the scene's colour.
+                data["white"] = data.pop("brightness", 255)
             if "effect" in attrs:
                 data["effect"] = attrs["effect"]
             if transition and (state := self.hass.states.get(entity_id)) and state.attributes.get("supported_features", 0) & 32:
@@ -224,11 +230,43 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
     async def _restore(self):
         items = list(self.snapshot.items())
         results = await asyncio.gather(*(self._restore_one(e, s) for e, s in items))
-        self.snapshot = {e: s for (e, s), ok in zip(items, results) if not ok}
+        self.snapshot = {e: s for (e, s), ok in zip(items, results) if not ok}  # Failures stay for a retry.
         self._touched_media.intersection_update(self.snapshot)
         self._powered_media.intersection_update(self.snapshot)
         self._video_media.intersection_update(self.snapshot)
         await self.save()
+        await self._verify_lights([(e, s) for (e, s), ok in zip(items, results) if ok and e.startswith("light.")])
+
+    def _light_mismatch(self, entity_id, saved):
+        """Why a light is not in its saved state, or None when it matches."""
+        state = self.hass.states.get(entity_id)
+        if not state or state.state in ("unknown", "unavailable"):
+            return None
+        if (state.state == "on") != (saved["state"] == "on"):
+            return f"is {state.state}, expected {saved['state']}"
+        if saved["state"] != "on":
+            return None
+        attrs, wanted = state.attributes, saved["attributes"]
+        if wanted.get("color_mode") and attrs.get("color_mode") != wanted["color_mode"]:
+            return f"colour mode {attrs.get('color_mode')}, expected {wanted['color_mode']}"
+        if "brightness" in wanted and abs((attrs.get("brightness") or 0) - wanted["brightness"]) > 16:
+            return f"brightness {attrs.get('brightness')}, expected {wanted['brightness']}"
+        return None
+
+    async def _verify_lights(self, items):
+        """Slow Zigbee/Bluetooth lights sometimes drop the last command: check, then send it again once."""
+        if not items:
+            return
+        for attempt in (1, 2):
+            await asyncio.sleep(self.verify_delay)
+            bad = {e: why for e, s in items if (why := self._light_mismatch(e, s))}
+            if not bad:
+                return
+            if attempt == 1:
+                self.record("light_restore_retry", reasons=bad)
+                await asyncio.gather(*(self._restore_one(e, s) for e, s in items if e in bad))
+            else:
+                self.record("light_not_restored", reasons=bad)
 
     async def _run(self):
         deadline = time.monotonic() + self.options["duration"] * 60

@@ -1,5 +1,12 @@
 # Historique
 
+## 0.6.0 — 18 octobre 2026
+
+- **La vidéo n'est plus coupée trop tôt** : l'intégration attend que la TV démarre la lecture (chargement de 2 à 4 secondes), laisse le clip se terminer, puis l'arrête. Elle ne coupait qu'après 6 secondes, avant la fin des clips de 7 à 8 secondes.
+- **Entité d'alimentation de la TV** (facultatif) : l'allumage et l'extinction peuvent passer par une autre entité que la lecture, par exemple Android TV Remote pour l'alimentation et Cast pour la vidéo. Avec Cast, « éteindre » ne fait que quitter l'application. L'intégration attend le retour du lecteur après l'allumage (jusqu'à 30 secondes).
+- Vérification des lampes après la restauration : si une lampe n'a pas repris son état (commande perdue par une lampe Zigbee ou Bluetooth), la commande est renvoyée une fois et le journal indique `light_restore_retry` ou `light_not_restored` avec la raison. Les lampes en mode blanc sont restaurées avec le paramètre `white`.
+- Durée maximale d'un test : 30 secondes.
+
 ## 0.5.1 — 18 octobre 2026
 
 - Une TV éteinte que la scène a allumée pour la vidéo est éteinte dès la fin de la vidéo (après rappel de sa source), et non plus seulement à la fin de la session ou du test. Une TV déjà allumée reste allumée.

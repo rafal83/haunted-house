@@ -38,9 +38,10 @@
       },
       "zone_media": {
         "title": "Télévision",
-        "description": "Facultatif. Haunted House joue ses propres vidéos effrayantes sur les TV/projecteurs choisis pour cette zone. Le mode enfants ne joue qu’une douce vidéo de citrouille.",
+        "description": "Facultatif. Haunted House joue ses propres vidéos effrayantes sur les TV choisies pour cette zone. Si votre TV est allumée et éteinte par une autre entité que celle qui lit la vidéo (par exemple Android TV Remote pour l’alimentation et Cast pour la lecture), choisissez ici cette entité d’alimentation. Une TV allumée par le spectacle est éteinte juste après la vidéo. Le mode enfants ne joue qu’une douce vidéo de citrouille.",
         "data": {
-          "video_power_on": "Autoriser l’allumage des TV/projecteurs éteints"
+          "video_power_on": "Autoriser l’allumage des TV/projecteurs éteints",
+          "video_power_entity": "Entité d’alimentation de la TV (facultatif)"
         }
       }
     },
@@ -128,9 +129,10 @@
       },
       "zone_media": {
         "title": "Télévision",
-        "description": "Facultatif. Haunted House joue ses propres vidéos effrayantes sur les TV/projecteurs choisis pour cette zone. Le mode enfants ne joue qu’une douce vidéo de citrouille.",
+        "description": "Facultatif. Haunted House joue ses propres vidéos effrayantes sur les TV choisies pour cette zone. Si votre TV est allumée et éteinte par une autre entité que celle qui lit la vidéo (par exemple Android TV Remote pour l’alimentation et Cast pour la lecture), choisissez ici cette entité d’alimentation. Une TV allumée par le spectacle est éteinte juste après la vidéo. Le mode enfants ne joue qu’une douce vidéo de citrouille.",
         "data": {
-          "video_power_on": "Autoriser l’allumage des TV/projecteurs éteints"
+          "video_power_on": "Autoriser l’allumage des TV/projecteurs éteints",
+          "video_power_entity": "Entité d’alimentation de la TV (facultatif)"
         }
       },
       "story": {

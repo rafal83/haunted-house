@@ -26,7 +26,7 @@ DEFAULTS.update({"progression": True, "auto_walk": False, "walk_interval": 120,
                  "kids_messages": "Bouh ! C’est la citrouille magique !\nLe petit fantôme te souhaite une bonne soirée !"})
 ZONE_DEFAULTS.update({"intensity": "inherit", "kids_mode": False, "reactive_lights": [],
                       "branch_enabled": False, "next_zone": "", "return_zone": "",
-                      "video_players": [], "video_power_on": False})
+                      "video_players": [], "video_power_on": False, "video_power_entity": ""})
 ZONE_DEFAULTS["scenes"] = list(SCENES)
 ENTITY_KEYS["video_players"] = "media_player"
 SERVICES = ["start", "stop", "scare", "play_scene", "ghost_walk", "preview_scene", "test_scene", "history"]
@@ -54,3 +54,7 @@ SCENE_LABELS = {"candle": "Bougies", "graveyard": "Cimetière", "storm": "Orage"
                 "pursuit": "Poursuite", "retreat": "Rire derrière vous", "blackout": "Coupure de courant",
                 "whispers": "Chuchotements", "knocks": "On frappe", "poltergeist": "Poltergeist",
                 "screen": "Écran hanté"}
+
+# Length in seconds of each bundled video, so playback is only stopped once the clip has finished.
+VIDEO_SECONDS = {"jumpscare": 8, "surveillance": 8, "static_ghost": 7, "apparition": 8, "kids": 6}
+POWER_DOMAINS = ("media_player", "switch", "remote")

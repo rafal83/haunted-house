@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.5.1.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.6.0.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 56 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 61 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -31,7 +31,7 @@ Le paquet s’installe via HACS (dépôt personnalisé) ou manuellement. Il n’
 
 1. Créer une zone avec une ou deux lampes, puis ajouter une enceinte.
 2. Dans le second formulaire, indiquer seulement si les TV/projecteurs peuvent être allumés. Les sons et vidéos sont fournis par l’intégration : aucune URL à saisir.
-3. Depuis **Configurer → Prévisualiser et tester une scène**, sélectionner cette zone et **Orage**. Vérifier l’aperçu puis lancer le test. Il s’arrête après 20 secondes maximum et restaure les états.
+3. Depuis **Configurer → Prévisualiser et tester une scène**, sélectionner cette zone et **Orage**. Vérifier l’aperçu puis lancer le test. Il s’arrête après 30 secondes maximum et restaure les états.
 4. Ajouter les autres pièces, puis définir **Histoire et parcours**.
 5. Activer **Mode hanté**. Utiliser le bouton **Faire circuler le fantôme** pour lancer un parcours immédiatement.
 
@@ -176,7 +176,9 @@ Aucune URL à renseigner : les sons et vidéos sont **fournis par l’intégrati
 
 Chaque scène choisit au hasard parmi plusieurs variantes. Les profils Familiale n’utilisent ni cris ni grondements. En mode enfants, la voix TTS configurée reste prioritaire sur le carillon inclus.
 
-**Vidéos.** Dès qu’une TV ou un projecteur est choisi dans la zone, les scènes Apparition, Maison hantée et Citrouille jouent une de leurs vidéos environ six secondes, puis l’arrêtent. Le lecteur doit accepter `media_player.play_media` avec un contenu vidéo et pouvoir joindre l’URL. Une TV qui expose seulement marche/arrêt ou changement de source ne suffit pas. L’entité de l’intégration **Android TV Remote** ne convient pas non plus : elle ne lance que des chaînes, URL ou applications et répond « Invalid media type: video ». Choisir à la place l’entité **Cast** (Chromecast intégré) ou **DLNA** de la même TV. L’intégration envoie d’abord le type `video/mp4` (attendu par Cast et DLNA), puis `video` si le lecteur le refuse, et retient celui qui marche. Quand un lecteur refuse la vidéo, le journal contient `video_skipped` avec `player_refused_video`, et ce lecteur n’est plus essayé jusqu’au rechargement de l’intégration (il n’est ni arrêté ni restauré inutilement). Une TV éteinte est ignorée sauf si **Autoriser l’allumage** est activé. Si elle a été allumée par le spectacle, elle est éteinte dès la fin de la vidéo, après avoir rappelé sa source initiale lorsqu’elle est connue. Une TV déjà allumée est laissée allumée. Une application ou une émission antérieure n’est pas reprise. Quand une vidéo n’est pas jouée, le journal contient `video_skipped` avec la raison (aucun lecteur disponible, allumage non autorisé, URL de base introuvable).
+**Vidéos.** Dès qu’une TV ou un projecteur est choisi dans la zone, les scènes Apparition, Maison hantée et Citrouille jouent une de leurs vidéos environ six secondes, puis l’arrêtent. Le lecteur doit accepter `media_player.play_media` avec un contenu vidéo et pouvoir joindre l’URL. Une TV qui expose seulement marche/arrêt ou changement de source ne suffit pas. L’entité de l’intégration **Android TV Remote** ne convient pas non plus : elle ne lance que des chaînes, URL ou applications et répond « Invalid media type: video ». Choisir à la place l’entité **Cast** (Chromecast intégré) ou **DLNA** de la même TV. L’intégration envoie d’abord le type `video/mp4` (attendu par Cast et DLNA), puis `video` si le lecteur le refuse, et retient celui qui marche. Quand un lecteur refuse la vidéo, le journal contient `video_skipped` avec `player_refused_video`, et ce lecteur n’est plus essayé jusqu’au rechargement de l’intégration (il n’est ni arrêté ni restauré inutilement). Une TV éteinte est ignorée sauf si **Autoriser l’allumage** est activé. La vidéo est lue jusqu’au bout (7 à 8 secondes, plus le temps de chargement de la TV) avant d’être arrêtée. Si elle a été allumée par le spectacle, elle est éteinte dès la fin de la vidéo, après avoir rappelé sa source initiale lorsqu’elle est connue.
+
+**TV allumée par une autre entité que celle qui lit la vidéo.** Beaucoup de TV Android/Google TV ont deux entités : **Android TV Remote** (allumer/éteindre, mais pas de vidéo) et **Cast** (vidéo, mais « éteindre » ne fait que quitter l’application et la TV dort en rendant son lecteur indisponible). Choisir l’entité **Cast** comme lecteur, puis l’entité **Android TV Remote** (ou une prise, un `remote`) dans **Entité d’alimentation de la TV** : la TV est allumée par l’entité d’alimentation, l’intégration attend que le lecteur Cast revienne (jusqu’à 30 secondes), lit la vidéo, puis éteint la TV par l’entité d’alimentation. Sans entité d’alimentation, la même entité sert à lire et à allumer/éteindre. Une TV déjà allumée est laissée allumée. Une application ou une émission antérieure n’est pas reprise. Quand une vidéo n’est pas jouée, le journal contient `video_skipped` avec la raison (aucun lecteur disponible, allumage non autorisé, URL de base introuvable).
 
 | Média | Fichiers | Origine |
 |---|---|---|
@@ -193,9 +195,9 @@ Aucune voix ni enregistrement de personne n’est utilisé, et aucun visage n’
 
 **Configurer → Prévisualiser et tester une scène** propose une zone et une scène, affiche la scène effective et les appareils sélectionnés, puis permet d’exécuter le test. Sans lancer le test, aucune commande n’est envoyée.
 
-Depuis la page de l’appareil de la zone (« Haunted House NOM »), sans passer par Configurer : choisir la scène dans la liste **Scène de test** (Bougies, Cimetière, Orage, Apparition, Maison hantée, Sons spatialisés, Enfants, Poursuite, Retrait), puis appuyer sur **Aperçu (scène choisie)** ou **Tester (scène choisie)**. Par défaut la liste affiche la scène de déclenchement de la zone ; le choix est oublié au rechargement de l’intégration. Le test garde les mêmes règles : session arrêtée, 20 secondes maximum, restauration automatique. L’aperçu est disponible dans les attributs du capteur État.
+Depuis la page de l’appareil de la zone (« Haunted House NOM »), sans passer par Configurer : choisir la scène dans la liste **Scène de test** (Bougies, Cimetière, Orage, Apparition, Maison hantée, Sons spatialisés, Enfants, Poursuite, Retrait), puis appuyer sur **Aperçu (scène choisie)** ou **Tester (scène choisie)**. Par défaut la liste affiche la scène de déclenchement de la zone ; le choix est oublié au rechargement de l’intégration. Le test garde les mêmes règles : session arrêtée, 30 secondes maximum, restauration automatique. L’aperçu est disponible dans les attributs du capteur État.
 
-Le test est une session isolée, sans parcours automatique, réaction aux capteurs, progression ou autres zones. Il refuse de démarrer tant que le spectacle est actif ou qu’une restauration reste en attente. Il sauvegarde les appareils de sa zone, joue la scène pendant 20 secondes maximum puis restaure, y compris après interruption. Le bouton global d’arrêt peut l’interrompre.
+Le test est une session isolée, sans parcours automatique, réaction aux capteurs, progression ou autres zones. Il refuse de démarrer tant que le spectacle est actif ou qu’une restauration reste en attente. Il sauvegarde les appareils de sa zone, joue la scène pendant 30 secondes maximum puis restaure, y compris après interruption. Le bouton global d’arrêt peut l’interrompre.
 
 Un test ignore le délai de démarrage des volets : la scène Apparition les fait bouger tout de suite, si le volet est éligible. Un aperçu liste les appareils sélectionnés, pas la garantie que leurs fonctionnalités soient toutes disponibles.
 
@@ -271,7 +273,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-56 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+61 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les cinq vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

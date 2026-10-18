@@ -117,6 +117,7 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse(engine.snapshot)
         # A legacy snapshot with None values is restored without sending them.
         engine.snapshot = {'light.a': {'state': 'on', 'attributes': {'brightness': 10, 'effect': None}}}
+        states['light.a'].attributes['brightness'] = 10  # the bulb obeys, so no retry is needed
         hass.calls.clear()
         await engine._restore()
         self.assertEqual(hass.calls, [('light', 'turn_on', {'entity_id': 'light.a', 'brightness': 10})])
@@ -247,6 +248,98 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         custom = normalize({'lights': ['light.a']})
         custom['zones'][0]['scenes'] = ['candle', 'storm']
         self.assertEqual(normalize(custom)['zones'][0]['scenes'], ['candle', 'storm'])
+
+    async def test_light_that_drops_the_restore_command_is_retried_and_reported(self):
+        engine, hass, states = make({'lights': ['light.a']})
+        await engine.start()
+        states['light.a'].state = 'off'  # The bulb never reacts: every restore command is "lost".
+        hass.calls.clear()
+        await engine.stop()
+        restores = [c for c in hass.calls if c[0] == 'light' and c[2]['entity_id'] == 'light.a']
+        self.assertEqual(len(restores), 2)  # first attempt, then one retry
+        kinds = [e['kind'] for e in engine.history]
+        self.assertIn('light_restore_retry', kinds)
+        self.assertIn('light_not_restored', kinds)
+        self.assertIn('is off, expected on', [e for e in engine.history if e['kind'] == 'light_not_restored'][0]['reasons']['light.a'])
+
+    async def test_white_mode_light_is_restored_with_the_white_parameter(self):
+        engine, hass, states = make({'lights': ['light.w']})
+        states['light.w'] = State('on', brightness=120, color_mode='white', supported_color_modes=['white', 'rgb'])
+        opts = normalize({'lights': ['light.w']})
+        engine, hass, states = make(opts)
+        states['light.w'] = State('on', brightness=120, color_mode='white', supported_color_modes=['white', 'rgb'])
+        await engine.start()
+        await engine.stop()
+        last = [c for c in hass.calls if c[0] == 'light'][-1]
+        self.assertEqual(last[2].get('white'), 120)
+        self.assertNotIn('brightness', last[2])
+
+    async def test_video_is_stopped_only_after_the_clip_has_played(self):
+        opts = normalize({'lights': ['light.a']})
+        opts['zones'][0].update(video_players=['media_player.tv'])
+        engine, hass, states = make(opts)
+        states['media_player.tv'] = State('idle')
+        ticks, log = {'n': 0}, []
+        original, fast = hass.services.async_call, engine.pause
+
+        async def traced(domain, service, data, **kwargs):
+            if service == 'play_media':
+                ticks['n'] = 0
+                states['media_player.tv'].state = 'buffering'  # a TV needs a moment to start
+            if service == 'media_stop':
+                log.append(ticks['n'])
+            await original(domain, service, data, **kwargs)
+
+        async def counting(seconds):
+            ticks['n'] += 1
+            if ticks['n'] == 4:
+                states['media_player.tv'].state = 'playing'
+            if ticks['n'] == 20:  # the clip ends by itself, 8 s after it started playing
+                states['media_player.tv'].state = 'idle'
+            await fast(seconds)
+        hass.services.async_call, engine.pause = traced, counting
+        await engine.start()
+        await engine._video('maison')
+        self.assertEqual(len(log), 1)
+        self.assertGreaterEqual(log[0], 20)  # not cut after a fixed few seconds (6 s = 12 ticks)
+        await engine.stop()
+
+    async def test_tv_is_woken_and_put_to_sleep_by_a_separate_power_entity(self):
+        opts = normalize({'lights': ['light.a']})
+        opts['zones'][0].update(video_players=['media_player.cast'], video_power_entity='media_player.atv', video_power_on=True)
+        engine, hass, states = make(opts)
+        states['media_player.cast'] = State('unavailable')  # asleep: the Cast player is offline
+        states['media_player.atv'] = State('off')
+        original = hass.services.async_call
+
+        async def wired(domain, service, data, **kwargs):
+            if data['entity_id'] == 'media_player.atv' and service == 'turn_on':
+                states['media_player.atv'].state = 'on'
+                states['media_player.cast'].state = 'idle'  # the TV booted, Cast is back
+            await original(domain, service, data, **kwargs)
+        hass.services.async_call = wired
+        await engine.start()
+        await engine._video('maison')
+        seen = [(c[2]['entity_id'], c[1]) for c in hass.calls if c[2]['entity_id'] in ('media_player.atv', 'media_player.cast')]
+        self.assertEqual(seen[0], ('media_player.atv', 'turn_on'))
+        self.assertIn(('media_player.cast', 'play_media'), seen)
+        self.assertEqual(seen[-1], ('media_player.atv', 'turn_off'))
+        self.assertEqual(seen.count(('media_player.atv', 'turn_off')), 1)
+        self.assertFalse(engine._powered_extra)
+        await engine.stop()
+        self.assertEqual(sum(1 for c in hass.calls if c[1] == 'turn_off' and c[2]['entity_id'] == 'media_player.atv'), 1)
+
+    async def test_sleeping_tv_is_left_alone_unless_power_on_is_allowed(self):
+        opts = normalize({'lights': ['light.a']})
+        opts['zones'][0].update(video_players=['media_player.cast'], video_power_entity='media_player.atv')
+        engine, hass, states = make(opts)
+        states['media_player.cast'] = State('unavailable')
+        states['media_player.atv'] = State('off')
+        await engine.start()
+        await engine._video('maison')
+        self.assertEqual(engine.history[-1]['reason'], 'power_on_disabled')
+        self.assertFalse([c for c in hass.calls if c[2]['entity_id'] in ('media_player.atv', 'media_player.cast')])
+        await engine.stop()
 
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()

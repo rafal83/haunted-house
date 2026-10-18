@@ -5,7 +5,7 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers import selector, entity_registry as er
-from .const import DOMAIN, DEFAULTS, ENTITY_KEYS, ZONE_DEFAULTS, SCENES, INTENSITIES
+from .const import DOMAIN, DEFAULTS, ENTITY_KEYS, POWER_DOMAINS, ZONE_DEFAULTS, SCENES, INTENSITIES
 from .model import normalize, validate_zone
 
 
@@ -50,7 +50,10 @@ def zone_schema(values, zones=None):
 
 
 def media_schema(values):
-    return vol.Schema({vol.Required("video_power_on", default=values.get("video_power_on", False)): selector.BooleanSelector()})
+    return vol.Schema({
+        vol.Required("video_power_on", default=values.get("video_power_on", False)): selector.BooleanSelector(),
+        vol.Optional("video_power_entity", description={"suggested_value": values.get("video_power_entity") or None}):
+            selector.EntitySelector(selector.EntitySelectorConfig(domain=list(POWER_DOMAINS)))})
 
 
 def story_schema(values, zones):
@@ -108,7 +111,7 @@ class HauntedHouseFlow(config_entries.ConfigFlow, domain=DOMAIN):
     async def async_step_zone_media(self, user_input=None):
         errors = {}
         if user_input is not None:
-            zone = self._pending | user_input
+            zone = self._pending | {"video_power_entity": ""} | user_input  # An emptied field is absent from user_input.
             errors = validate(self.hass, zone, [])
             if not errors:
                 return self.async_create_entry(title="Haunted House", data={}, options=self._settings | {"zones": [zone]})
@@ -202,7 +205,7 @@ class HauntedOptionsFlow(config_entries.OptionsFlow):
     async def async_step_zone_media(self, user_input=None):
         errors = {}
         if user_input is not None:
-            zone = self._pending | user_input
+            zone = self._pending | {"video_power_entity": ""} | user_input
             others = [z for z in self._draft["zones"] if z["id"] != zone["id"]]
             errors = validate(self.hass, zone, others)
             if not errors:

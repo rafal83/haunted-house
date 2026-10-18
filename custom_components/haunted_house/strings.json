@@ -38,9 +38,10 @@
       },
       "zone_media": {
         "title": "Television",
-        "description": "Optional. Haunted House plays its own scary videos on the TVs/projectors selected for this zone. Children mode only plays a gentle pumpkin video.",
+        "description": "Optional. Haunted House plays its own scary videos on the TVs selected for this zone. If your TV is woken and put to sleep by a different entity than the one that plays video (for example Android TV Remote for power and Cast for playback), choose that power entity here. A TV the show switched on is switched off right after the video. Children mode only plays a gentle pumpkin video.",
         "data": {
-          "video_power_on": "Allow turning on TVs/projectors"
+          "video_power_on": "Allow turning on TVs/projectors",
+          "video_power_entity": "TV power entity (optional)"
         }
       }
     },
@@ -128,9 +129,10 @@
       },
       "zone_media": {
         "title": "Television",
-        "description": "Optional. Haunted House plays its own scary videos on the TVs/projectors selected for this zone. Children mode only plays a gentle pumpkin video.",
+        "description": "Optional. Haunted House plays its own scary videos on the TVs selected for this zone. If your TV is woken and put to sleep by a different entity than the one that plays video (for example Android TV Remote for power and Cast for playback), choose that power entity here. A TV the show switched on is switched off right after the video. Children mode only plays a gentle pumpkin video.",
         "data": {
-          "video_power_on": "Allow turning on TVs/projectors"
+          "video_power_on": "Allow turning on TVs/projectors",
+          "video_power_entity": "TV power entity (optional)"
         }
       },
       "story": {

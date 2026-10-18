@@ -6,7 +6,7 @@ import random
 import time
 from homeassistant.helpers.storage import Store
 from .const import (BUNDLED_AUDIO, BUNDLED_VIDEO, ENTITY_KEYS, HARSH_AUDIO, INTENSITIES,
-                    MEDIA_URL_PATH, SCENES)
+                    MEDIA_URL_PATH, SCENES, VIDEO_SECONDS)
 from .model import trigger_fired
 
 CURRENT_ZONE = ContextVar("haunted_zone", default=None)
@@ -18,6 +18,7 @@ class StoryFeatures:
     def init_story(self):
         self._story_task = None
         self._dirty_lights = set()  # Lights a scene touched, to restore only those between scenes.
+        self._powered_extra = set()  # Separate power entities the show switched on (not in the snapshot).
         self._video_rejected = set()  # Players that refused video playback; not retried until reload.
         self._video_type = {}  # Content type each player accepted: a MIME type first (Cast, DLNA), then plain "video".
         self.test_choice = {}
@@ -92,7 +93,7 @@ class StoryFeatures:
             "entities": {k: list(zone[k]) for k in ENTITY_KEYS},
             "unavailable": [e for k in ENTITY_KEYS for e in zone[k]
                             if not self.hass.states.get(e) or self.hass.states.get(e).state in ("unknown", "unavailable")],
-            "reactive_lights": zone["reactive_lights"], "maximum_test_seconds": 20,
+            "reactive_lights": zone["reactive_lights"], "maximum_test_seconds": 30,
             "audio_restoration": "volume_only", "requires_idle_session": True,
         }
         self.notify()
@@ -110,7 +111,7 @@ class StoryFeatures:
             try:
                 await self.effect(zone_id=zone_id, scene=scene, source="test")
                 task = self._effects[zone_id]
-                async with asyncio.timeout(20):
+                async with asyncio.timeout(30):
                     await task
             except TimeoutError:
                 outcome = "timeout"
@@ -289,10 +290,12 @@ class StoryFeatures:
 
     async def _video(self, zone_id):
         zone = self.zones[zone_id]
-        ids = self.usable("video_players", zone_id)
         if not zone["video_players"]:
             return
-        ids = [e for e in ids if e not in self._video_rejected]
+        power_id = zone.get("video_power_entity") or ""
+        # With a separate power entity a sleeping TV makes its player unavailable, so wake it first.
+        candidates = zone["video_players"] if power_id else self.usable("video_players", zone_id)
+        ids = [e for e in candidates if e not in self._video_rejected]
         if not ids:
             self.record("video_skipped", zone_id=zone_id, reason="no_available_player_or_video_refused")
             return
@@ -301,22 +304,29 @@ class StoryFeatures:
             self.record("video_skipped", zone_id=zone_id, reason="no_base_url")
             return
         entity_id = random.choice(ids)
-        state = self.hass.states.get(entity_id)
-        if state.state == "off" and not zone["video_power_on"]:
-            self.record("video_skipped", zone_id=zone_id, entity_id=entity_id, reason="power_on_disabled")
+        power_id = power_id or entity_id
+        power_state = self.hass.states.get(power_id)
+        if not power_state or power_state.state in ("unavailable", "unknown"):
+            self.record("video_skipped", zone_id=zone_id, entity_id=power_id, reason="power_entity_unavailable")
+            return
+        powered = power_state.state == "off"
+        if powered and not zone["video_power_on"]:
+            self.record("video_skipped", zone_id=zone_id, entity_id=power_id, reason="power_on_disabled")
             return
         was_touched, was_video = entity_id in self._touched_media, entity_id in self._video_media
-        powered = state.state == "off"
         self._touched_media.add(entity_id)
         self._video_media.add(entity_id)
         if powered:
-            self._powered_media.add(entity_id)
+            (self._powered_media if power_id == entity_id else self._powered_extra).add(power_id)
         await self.save()
-        if powered and not await self.call("media_player", "turn_on", entity_id):
-            self._powered_media.discard(entity_id)
-            return
+        if powered:
+            if not await self.call(power_id.split(".", 1)[0], "turn_on", power_id):
+                self._powered_media.discard(power_id)
+                self._powered_extra.discard(power_id)
+                return
         try:
             if powered:
+                await self._wait_available(entity_id)
                 await self.pause(2)
             played = False
             for media_type in dict.fromkeys([self._video_type.get(entity_id, "video/mp4"), "video/mp4", "video"]):
@@ -335,17 +345,50 @@ class StoryFeatures:
                 self.record("video_skipped", zone_id=zone_id, entity_id=entity_id, reason="player_refused_video")
                 return
             try:
-                await self.pause(6)
+                await self._wait_clip(entity_id, VIDEO_SECONDS.get(url.rsplit("/", 1)[1].rsplit(".", 1)[0], 8))
             finally:
                 await self.call("media_player", "media_stop", entity_id)
         finally:
             if powered:  # The show switched this TV on, so switch it off again as soon as the video ends.
-                await self._power_down(entity_id)
+                await self._power_down(entity_id, power_id)
 
-    async def _power_down(self, entity_id):
-        """Put a TV the show switched on back as it was (source, then off) right after its video."""
+    async def _wait_available(self, entity_id, seconds=30):
+        """A TV that was asleep needs a while to boot and for its player to come back."""
+        for _ in range(int(seconds * 2)):
+            state = self.hass.states.get(entity_id)
+            if state and state.state not in ("unavailable", "unknown", "off"):
+                return True
+            await self.pause(.5)
+        return False
+
+    async def _wait_clip(self, entity_id, seconds):
+        """Let the clip play to its end: a TV needs a few seconds to buffer before it even starts."""
+        for _ in range(16):
+            state = self.hass.states.get(entity_id)
+            if state and state.state in ("playing", "buffering"):
+                break
+            await self.pause(.5)
+        else:  # The player never reports "playing": fall back to the clip length plus buffering time.
+            await self.pause(seconds + 3)
+            return
+        for _ in range(int((seconds + 4) / .5)):
+            state = self.hass.states.get(entity_id)
+            if not state or state.state not in ("playing", "buffering", "paused"):
+                return
+            await self.pause(.5)
+
+    async def _power_down(self, entity_id, power_id):
+        """Put a TV the show switched on back as it was, right after its video."""
         saved = self.snapshot.get(entity_id)
-        if saved and await self._restore_one(entity_id, saved):
-            for group in (self._touched_media, self._video_media, self._powered_media):
+        if power_id == entity_id and saved:
+            done = await self._restore_one(entity_id, saved)  # source back, then off
+        else:
+            done = await self.call(power_id.split(".", 1)[0], "turn_off", power_id)
+            if power_id != entity_id:  # The player is asleep now: nothing is left to stop or restore on it.
+                self._touched_media.discard(entity_id)
+                self._video_media.discard(entity_id)
+        if done:
+            for group in (self._touched_media, self._video_media, self._powered_media, self._powered_extra):
+                group.discard(power_id)
                 group.discard(entity_id)
             await self.save()
