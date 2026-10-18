@@ -1,5 +1,9 @@
 # Historique
 
+## 0.4.1 — 18 octobre 2026
+
+- Option **Remettre les lumières normales entre deux scènes** (activée par défaut) : les lampes de la zone reviennent à leur état d'avant le spectacle à la fin de chaque scène.
+
 ## 0.4.0 — 18 octobre 2026
 
 - **Terreur** : lumières qui scintillent et grésillent de façon irrégulière (chaque lampe sa séquence, 3 changements par seconde au plus), coupures noires, éclairs d'orage en rafale, flashs rouges.

@@ -139,6 +139,18 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         report = await engine.test_scene('maison', engine.chosen_scene('maison'))
         self.assertEqual(report['preview']['scene'], 'storm')
 
+    async def test_lights_return_to_normal_between_scenes_when_enabled(self):
+        for enabled in (True, False):
+            engine, hass, states = make({'lights': ['light.a'], 'restore_between_scenes': enabled})
+            await engine.start()
+            await engine.effect(scene='candle')
+            await complete(engine)
+            last = [c for c in hass.calls if c[0] == 'light'][-1]
+            restored = last[2].get('brightness') == 142 and last[2].get('rgb_color') == [1, 2, 3]
+            self.assertEqual(restored, enabled)
+            self.assertTrue(engine.running)
+            await engine.stop()
+
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
         opts['ghost_route'] = ['salon', 'maison']

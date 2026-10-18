@@ -9,7 +9,7 @@ INTENSITIES = {
     "haunted": {"brightness": 210, "volume": .50, "cover_step": 15, "pulse": .7, "fear": 3},
 }
 DEFAULTS = {"volume": .25, "interval": 20, "duration": 30, "cover_cooldown": 180,
-            "trigger_cooldown": 20, "intensity": "family"}
+            "trigger_cooldown": 20, "intensity": "family", "restore_between_scenes": True}
 ZONE_DEFAULTS = {"name": "Maison", "lights": [], "covers": [], "media_players": [],
                  "switches": [], "triggers": [], "scenes": list(SCENES),
                  "trigger_scene": "apparition"}

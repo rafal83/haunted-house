@@ -7,6 +7,7 @@
         "description": "Les profils limitent le volume et la luminosité. Aucun appareil n’est sélectionné automatiquement.",
         "data": {
           "intensity": "Intensité",
+          "restore_between_scenes": "Remettre les lumières normales entre deux scènes",
           "volume": "Volume maximal (0–1)",
           "interval": "Intervalle moyen entre scènes (secondes)",
           "duration": "Durée de session (minutes)",
@@ -81,6 +82,7 @@
         "description": "Les profils limitent le volume et la luminosité. Aucun appareil n’est sélectionné automatiquement.",
         "data": {
           "intensity": "Intensité",
+          "restore_between_scenes": "Remettre les lumières normales entre deux scènes",
           "volume": "Volume maximal (0–1)",
           "interval": "Intervalle moyen entre scènes (secondes)",
           "duration": "Durée de session (minutes)",

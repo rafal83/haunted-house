@@ -7,6 +7,7 @@
         "description": "Profiles cap volume and brightness. No devices are selected automatically.",
         "data": {
           "intensity": "Intensity",
+          "restore_between_scenes": "Return lights to normal between scenes",
           "volume": "Maximum volume (0–1)",
           "interval": "Average scene interval (seconds)",
           "duration": "Session duration (minutes)",
@@ -81,6 +82,7 @@
         "description": "Profiles cap volume and brightness. No devices are selected automatically.",
         "data": {
           "intensity": "Intensity",
+          "restore_between_scenes": "Return lights to normal between scenes",
           "volume": "Maximum volume (0–1)",
           "interval": "Average scene interval (seconds)",
           "duration": "Session duration (minutes)",

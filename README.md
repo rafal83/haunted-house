@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.4.0.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.4.1.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 47 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 48 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -105,6 +105,10 @@ Les scènes se dégradent selon le matériel présent : une scène lumineuse fon
 Le volume envoyé est le minimum entre votre réglage et le plafond effectif du profil. Le mode enfants d’une zone transforme ses scènes, parcours et embranchements en scène douce. Il utilise **uniquement** le carillon et la vidéo de citrouille inclus ; jamais les cris ni les vidéos effrayantes.
 
 Pour les voix, renseigner une entité TTS existante dans **Histoire et parcours**, par exemple `tts.piper`, puis une phrase par ligne. Quand elle est configurée, cette entité lit une phrase aléatoire à la place du carillon. La voix et la disponibilité réseau dépendent de votre moteur TTS ; l’intégration ne crée pas elle-même une voix. Les phrases par défaut sont douces et modifiables.
+
+## Retour à la normale entre les scènes
+
+Par défaut, à la fin de chaque scène les lampes de la zone reviennent en douceur (2 secondes) à leur état d’avant le spectacle : la pièce redevient normale, ce qui rend la scène suivante plus choquante. L’option **Remettre les lumières normales entre deux scènes** (**Réglages généraux**) la désactive : les lampes gardent alors la dernière couleur sombre de la scène jusqu’à la suivante. Seules les lumières sont concernées ; les volets, déplacés de quelques points, ne bougent pas une seconde fois. Un test s’arrête toujours en restaurant tout, quelle que soit l’option.
 
 ## Histoire, rythme et finale
 
@@ -247,7 +251,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-47 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+48 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les cinq vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

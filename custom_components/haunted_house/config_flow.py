@@ -18,7 +18,8 @@ def choose(options, multiple=False, translation_key=None):
 
 def global_schema(values):
     v = DEFAULTS | values
-    fields = {vol.Required("intensity", default=v["intensity"]): choose(list(INTENSITIES), translation_key="intensities")}
+    fields = {vol.Required("intensity", default=v["intensity"]): choose(list(INTENSITIES), translation_key="intensities"),
+              vol.Required("restore_between_scenes", default=v["restore_between_scenes"]): selector.BooleanSelector()}
     for key, low, high, step in (("volume", 0, 1, .05), ("interval", 8, 120, 1),
                                 ("duration", 1, 180, 1), ("cover_cooldown", 120, 1800, 1),
                                 ("trigger_cooldown", 10, 300, 1)):

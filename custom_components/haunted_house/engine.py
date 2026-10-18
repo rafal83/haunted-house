@@ -172,7 +172,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             self.last_effect = "recovery_pending" if self.snapshot else "idle"
             self.notify()
 
-    async def _restore_one(self, entity_id, saved):
+    async def _restore_one(self, entity_id, saved, transition=0):
         domain = entity_id.split(".", 1)[0]
         # Older snapshots may hold None values (e.g. effect, volume_level) that service schemas reject.
         attrs = {k: v for k, v in saved["attributes"].items() if v is not None}
@@ -199,6 +199,8 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
                 data[color_key] = attrs[color_key]
             if "effect" in attrs:
                 data["effect"] = attrs["effect"]
+            if transition and (state := self.hass.states.get(entity_id)) and state.attributes.get("supported_features", 0) & 32:
+                data["transition"] = transition
             return await self.call(domain, "turn_on", entity_id, **data)
         return await self.call(domain, "turn_on" if saved["state"] == "on" else "turn_off", entity_id)
 
@@ -302,6 +304,8 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
         outcome = "completed"
         try:
             await self._scene_body(zone_id, scene)
+            if self.running and not self._testing and self.options["restore_between_scenes"]:
+                await self._normal_lights(zone_id)
         except asyncio.CancelledError:
             outcome = "cancelled"
             raise
@@ -313,6 +317,10 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             self.record("scene_finished", zone_id=zone_id, scene=scene, outcome=outcome)
             CURRENT_ZONE.reset(zone_token)
             CURRENT_SCENE.reset(scene_token)
+
+    async def _normal_lights(self, zone_id):
+        """Bring the zone's lights back to their pre-show state so the next scene stands out."""
+        await asyncio.gather(*(self._restore_one(e, self.snapshot[e], transition=2) for e in self.usable("lights", zone_id)))
 
     async def _scene_body(self, zone_id, scene):
         try:

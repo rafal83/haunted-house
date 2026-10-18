@@ -311,7 +311,7 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
         await engine.stop()
 
     async def test_intensity_caps(self):
-        engine, hass, states = make({'volume': .9, 'intensity': 'family'})
+        engine, hass, states = make({'volume': .9, 'intensity': 'family', 'restore_between_scenes': False})
         await engine.start()
         await engine.effect(scene='storm')
         await complete(engine)
