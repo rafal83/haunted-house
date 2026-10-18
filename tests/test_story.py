@@ -188,6 +188,66 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(engine._video_type['media_player.tv'], 'video')
         await engine.stop()
 
+    async def test_sound_only_scenes_leave_the_lights_alone(self):
+        for scene in ('spatial', 'whispers', 'knocks'):
+            with self.subTest(scene=scene):
+                engine, hass, states = make({'lights': ['light.a'], 'media_players': ['media_player.a']})
+                await engine.start()
+                await engine.effect(scene=scene)
+                await complete(engine)
+                self.assertFalse([c for c in hass.calls if c[0] == 'light'])
+                self.assertTrue([c for c in hass.calls if c[1] == 'play_media'])
+                await engine.stop()
+
+    async def test_candle_is_silent_and_pursuit_turns_lights_off(self):
+        engine, hass, states = make({'lights': ['light.a'], 'media_players': ['media_player.a']})
+        await engine.start()
+        await engine.effect(scene='candle')
+        await complete(engine)
+        self.assertFalse([c for c in hass.calls if c[1] == 'play_media'])
+        hass.calls.clear()
+        await engine.effect(zone_id='maison', scene='pursuit')
+        await complete(engine)
+        self.assertTrue([c for c in hass.calls if c[0] == 'light' and c[1] == 'turn_off'])
+        self.assertEqual(len([c for c in hass.calls if c[1] == 'play_media']), 2)  # footsteps, then a knock
+        await engine.stop()
+
+    async def test_poltergeist_moves_covers_without_waiting_for_the_cooldown(self):
+        engine, hass, states = make({'lights': ['light.a'], 'covers': ['cover.good'], 'switches': ['switch.prop'],
+                                     'media_players': ['media_player.a']})
+        await engine.start()
+        await engine.effect(scene='poltergeist')
+        await complete(engine)
+        moves = [c for c in hass.calls if c[1] == 'set_cover_position']
+        self.assertEqual(len(moves), 1)
+        self.assertGreaterEqual(abs(moves[0][2]['position'] - 80), 20)
+        self.assertFalse([c for c in hass.calls if c[0] == 'light'])
+        await engine.stop()
+
+    async def test_automatic_draw_skips_scenes_the_zone_cannot_play(self):
+        engine, hass, states = make(normalize({'lights': ['light.a']}))
+        zone = engine.zones['maison']
+        self.assertFalse(engine.scene_feasible(zone, 'knocks'))
+        self.assertFalse(engine.scene_feasible(zone, 'screen'))
+        self.assertTrue(engine.scene_feasible(zone, 'candle'))
+        await engine.start()
+        for _ in range(30):
+            engine._last_scare.clear()
+            await engine.effect(source='automatic')
+            await complete(engine)
+        started = {e['scene'] for e in engine.history if e['kind'] == 'scene_started'}
+        self.assertFalse(started & {'knocks', 'whispers', 'spatial', 'screen', 'poltergeist', 'retreat'})
+        await engine.stop()
+
+    async def test_zones_with_the_old_full_scene_list_get_the_new_scenes(self):
+        from haunted_house_test.const import LEGACY_SCENES, SCENES
+        old = normalize({'lights': ['light.a']})
+        old['zones'][0]['scenes'] = list(LEGACY_SCENES)
+        self.assertEqual(normalize(old)['zones'][0]['scenes'], list(SCENES))
+        custom = normalize({'lights': ['light.a']})
+        custom['zones'][0]['scenes'] = ['candle', 'storm']
+        self.assertEqual(normalize(custom)['zones'][0]['scenes'], ['candle', 'storm'])
+
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
         opts['ghost_route'] = ['salon', 'maison']

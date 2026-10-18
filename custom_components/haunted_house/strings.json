@@ -191,7 +191,12 @@
         "spatial": "Spatial sounds",
         "kids": "Magic pumpkin",
         "pursuit": "Pursuit",
-        "retreat": "Laugh behind you"
+        "retreat": "Laugh behind you",
+        "blackout": "Power cut",
+        "whispers": "Whispers",
+        "knocks": "Knocking",
+        "poltergeist": "Poltergeist",
+        "screen": "Haunted screen"
       }
     },
     "intensities": {

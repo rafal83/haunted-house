@@ -16,6 +16,9 @@ ZONE_DEFAULTS = {"name": "Maison", "lights": [], "covers": [], "media_players": 
 
 # v3 fields are added without altering old option values or zone IDs.
 SCENES += ["spatial", "kids", "pursuit", "retreat"]
+LEGACY_SCENES = list(SCENES)  # Zones that kept this full default list receive the newer scenes below.
+SCENES += ["blackout", "whispers", "knocks", "poltergeist", "screen"]
+CALM_SCENES = ("candle", "graveyard", "whispers", "knocks", "kids")
 INTENSITIES["kids"] = {"brightness": 65, "volume": .12, "cover_step": 0, "pulse": 2, "fear": 0}
 AUDIO_TAGS = ["candle", "graveyard", "storm", "apparition", "haunted", "footsteps", "whisper", "knock", "laugh", "kids"]
 DEFAULTS.update({"progression": True, "auto_walk": False, "walk_interval": 120,
@@ -47,5 +50,7 @@ BUNDLED_VIDEO = {"scary": ["jumpscare", "surveillance", "static_ghost", "apparit
                  "mild": ["apparition", "surveillance"], "kids": ["kids"]}
 
 SCENE_LABELS = {"candle": "Bougies", "graveyard": "Cimetière", "storm": "Orage", "apparition": "Apparition",
-                "haunted": "Maison hantée", "spatial": "Sons spatialisés", "kids": "Enfants",
-                "pursuit": "Poursuite", "retreat": "Retrait"}
+                "haunted": "Maison hantée", "spatial": "Sons spatialisés", "kids": "Citrouille magique",
+                "pursuit": "Poursuite", "retreat": "Rire derrière vous", "blackout": "Coupure de courant",
+                "whispers": "Chuchotements", "knocks": "On frappe", "poltergeist": "Poltergeist",
+                "screen": "Écran hanté"}

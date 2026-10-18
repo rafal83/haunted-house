@@ -191,7 +191,12 @@
         "spatial": "Sons spatialisés",
         "kids": "Citrouille magique",
         "pursuit": "Poursuite",
-        "retreat": "Rire derrière vous"
+        "retreat": "Rire derrière vous",
+        "blackout": "Coupure de courant",
+        "whispers": "Chuchotements",
+        "knocks": "On frappe",
+        "poltergeist": "Poltergeist",
+        "screen": "Écran hanté"
       }
     },
     "intensities": {

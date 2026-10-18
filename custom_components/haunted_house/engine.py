@@ -8,6 +8,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from .const import DOMAIN, ENTITY_KEYS, INTENSITIES, SCENES
+from .const import CALM_SCENES
 from .horror import HorrorEffects
 from .model import normalize
 from .story import StoryFeatures, CURRENT_ZONE, CURRENT_SCENE, WALK_SOUND
@@ -117,6 +118,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             self._touched_media.clear()
             self._powered_media.clear()
             self._video_media.clear()
+            self._dirty_lights.clear()
             try:
                 await self.save()
             except BaseException:
@@ -284,8 +286,10 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             if scare:
                 self._last_scare[zone_id] = now
             candidates = zone["scenes"]
+            if source == "automatic":  # Only draw scenes this zone's devices can actually play.
+                candidates = [s for s in candidates if self.scene_feasible(zone, s)] or candidates
             if source == "automatic" and self.phase == "calm" and self.profile.get("fear", 1) < 3:
-                candidates = [s for s in candidates if s in ("candle", "graveyard", "kids")] or candidates
+                candidates = [s for s in candidates if s in CALM_SCENES] or candidates
             scene = scene or (zone["trigger_scene"] if scare else random.choice(candidates))
             self._effects[zone_id] = self.hass.async_create_background_task(
                 self._scene(zone_id, scene), f"Haunted House {zone_id} {scene}")
@@ -320,7 +324,9 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
 
     async def _normal_lights(self, zone_id):
         """Bring the zone's lights back to their pre-show state so the next scene stands out."""
-        await asyncio.gather(*(self._restore_one(e, self.snapshot[e], transition=2) for e in self.usable("lights", zone_id)))
+        ids = [e for e in self.usable("lights", zone_id) if e in self._dirty_lights]
+        self._dirty_lights.difference_update(ids)
+        await asyncio.gather(*(self._restore_one(e, self.snapshot[e], transition=2) for e in ids))
 
     async def _scene_body(self, zone_id, scene):
         try:
@@ -350,6 +356,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
         state = self.hass.states.get(entity_id)
         if not state or state.state in ("unknown", "unavailable"):
             return
+        self._dirty_lights.add(entity_id)
         if level <= 0:
             await self.call("light", "turn_off", entity_id)
             return
@@ -375,14 +382,15 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
     async def _sound(self, zone_id):
         await self._play_audio(zone_id, CURRENT_SCENE.get())
 
-    async def _cover(self, zone_id):
+    async def _cover(self, zone_id, force=False, step=None):
+        """Nudge one cover. force skips the startup/cooldown delay (used by the poltergeist scene)."""
         if self.is_kids(zone_id):
             return
         if not self.zones[zone_id]["covers"]:
             return
         now = time.monotonic()
         wait = self.options["cover_cooldown"] - (now - self._last_cover.get(zone_id, now))
-        if wait > 0 and not self._testing:  # A test is explicit, so it skips the startup delay.
+        if wait > 0 and not self._testing and not force:  # A test is explicit, so it skips the startup delay.
             self.record("cover_skipped", zone_id=zone_id, reason="cooldown", seconds_left=round(wait))
             return
         ids = self.usable("covers", zone_id)
@@ -396,7 +404,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             return
         pos = state.attributes["current_position"]
         self._last_cover[zone_id] = now
-        offset = random.choice([-1, 1]) * self.profile["cover_step"]
+        offset = random.choice([-1, 1]) * (step or self.profile["cover_step"])
         await self.call("cover", "set_cover_position", entity_id, position=max(0, min(100, pos + offset)))
 
     async def _prop(self, zone_id):

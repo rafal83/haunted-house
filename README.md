@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.4.4.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.5.0.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 50 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 55 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -75,17 +75,26 @@ Un même identifiant piloté ne peut figurer dans deux zones, ni être à la foi
 
 ## Catalogue de scènes
 
-| Scène | Identifiant | Effets |
-|---|---|---|
-| Bougies | `candle` | Flammes orange qui vacillent, extinction brusque, braise rouge, craquement ou souffle |
-| Cimetière | `graveyard` | Vert maladif qui grésille, souffle, noir total puis éclair blanc |
-| Orage | `storm` | Éclairs blancs en rafale (jusqu’à trois), coupure, tonnerre grave |
-| Apparition | `apparition` | Violet qui grésille, chuchotements, noir, flash rouge, cri, volet, accessoire et vidéo |
-| Maison hantée | `haunted` | Lumières rouges qui scintillent, grondement, noir total, flash rouge et cri, accessoire et vidéo |
-| Sons spatialisés | `spatial` | Pas, souffle puis coups sur des enceintes successives, lumière qui vacille |
-| Citrouille magique | `kids` | Orange et rose doux, carillon, vidéo de citrouille et éventuellement TTS |
-| Poursuite | `pursuit` | Lumière verte qui grésille, pas, coups, noir puis retour violet |
-| Rire derrière vous | `retreat` | Rouge qui scintille et rire |
+Chaque scène a sa propre signature et n’utilise que les appareils qui lui conviennent : une scène « son seul » ne touche pas aux lumières, une scène « lumière seule » reste silencieuse.
+
+| Scène | Identifiant | Signature | Appareils |
+|---|---|---|---|
+| Bougies | `candle` | Flammes qui vacillent puis s’éteignent, en silence | lumières |
+| Cimetière | `graveyard` | Brume verte froide qui monte et descend doucement, souffles et chuchotements ; ni scintillement ni flash | lumières + son |
+| Orage | `storm` | Éclairs blancs en rafale (jusqu’à trois), puis tonnerre grave | lumières + son |
+| Apparition | `apparition` | Violet qui grésille, chuchotements, noir total, flash rouge et cri, volet, accessoire et vidéo : le grand sursaut | tout |
+| Maison hantée | `haunted` | Lueur rouge qui respire, grondements, accessoire et vidéo ; jamais de cri | lumières, son, TV |
+| Sons spatialisés | `spatial` | Quelqu’un traverse la maison : pas, souffle, coups sur des enceintes successives | son seul |
+| Poursuite | `pursuit` | Des pas se rapprochent pendant que les lampes s’éteignent une à une, puis des coups | son + lumières |
+| Rire derrière vous | `retreat` | Un rire, une lampe rouge qui tressaute | son (+ une lampe) |
+| Coupure de courant | `blackout` | Noir total, craquement dans l’obscurité, la lumière revient en sursautant | lumières + son |
+| Chuchotements | `whispers` | Des voix dans les murs, depuis deux enceintes | son seul |
+| On frappe | `knocks` | Des coups, un silence, des coups plus forts | son seul |
+| Poltergeist | `poltergeist` | Les objets bougent seuls : prise, volet (au moins 20 %), coups et craquement | prises, volets, son |
+| Écran hanté | `screen` | La TV montre ce qu’elle ne devrait pas | TV seule |
+| Citrouille magique | `kids` | Orange et rose doux, carillon, vidéo de citrouille, éventuellement TTS | lumières + son + TV |
+
+Le tirage automatique ne choisit que des scènes que la zone peut jouer : une zone sans enceinte ne tire jamais « On frappe », une zone sans TV jamais « Écran hanté ». Les zones qui avaient la liste complète d’origine reçoivent les cinq nouvelles scènes ; une liste personnalisée reste telle quelle. La montée calme du début de session se limite aux scènes discrètes (Bougies, Cimetière, Chuchotements, On frappe).
 
 Les branches son, vidéo, accessoire et lumière sont coordonnées au niveau logiciel. Les latences propres aux appareils empêchent une synchronisation audiovisuelle à la milliseconde. Aucun stroboscope n’est utilisé : le scintillement est irrégulier, chaque lampe suit sa propre séquence et ne change jamais plus d’environ trois fois par seconde.
 
@@ -106,9 +115,20 @@ Le volume envoyé est le minimum entre votre réglage et le plafond effectif du 
 
 Pour les voix, renseigner une entité TTS existante dans **Histoire et parcours**, par exemple `tts.piper`, puis une phrase par ligne. Quand elle est configurée, cette entité lit une phrase aléatoire à la place du carillon. La voix et la disponibilité réseau dépendent de votre moteur TTS ; l’intégration ne crée pas elle-même une voix. Les phrases par défaut sont douces et modifiables.
 
+## Pourquoi un volet ne bouge pas
+
+1. **La scène ne les utilise pas** : seules Apparition et Poltergeist actionnent les volets, et le tirage automatique peut ne pas les choisir. Choisir **Poltergeist** dans la liste **Scène de test** de la zone, puis **Tester** : le volet bouge tout de suite.
+2. **Le volet n’est pas éligible** : il lui faut une classe `blind`, `curtain`, `shade` ou `shutter`, la prise en charge du réglage de position, une position connue, et ne pas être déjà en mouvement. Sinon il est écarté au démarrage et le journal contient `cover_ignored` avec la raison.
+3. **Le délai** (Apparition seulement) : 180 secondes par défaut après le démarrage de la session, puis une fois par zone et par délai. Le journal contient `cover_skipped` avec `cooldown` et le temps restant.
+4. **Le pas est trop petit** : 5 % en profil Familiale se voit à peine sur un volet roulant.
+5. **Mode enfants** : jamais de volet.
+6. **Le volet refuse la commande** : un `device_error` apparaît dans le journal avec l’action en échec.
+
+Le capteur **Journal des manifestations** (attribut `events`) donne la raison exacte pour chaque volet.
+
 ## Retour à la normale entre les scènes
 
-Par défaut, à la fin de chaque scène les lampes de la zone reviennent en douceur (2 secondes) à leur état d’avant le spectacle : la pièce redevient normale, ce qui rend la scène suivante plus choquante. L’option **Remettre les lumières normales entre deux scènes** (**Réglages généraux**) la désactive : les lampes gardent alors la dernière couleur sombre de la scène jusqu’à la suivante. Seules les lumières sont concernées ; les volets, déplacés de quelques points, ne bougent pas une seconde fois. Un test s’arrête toujours en restaurant tout, quelle que soit l’option.
+Par défaut, à la fin de chaque scène les lampes de la zone reviennent en douceur (2 secondes) à leur état d’avant le spectacle : la pièce redevient normale, ce qui rend la scène suivante plus choquante. L’option **Remettre les lumières normales entre deux scènes** (**Réglages généraux**) la désactive : les lampes gardent alors la dernière couleur sombre de la scène jusqu’à la suivante. Seules les lampes qu’une scène a réellement modifiées sont remises en état (une scène « son seul » n’y touche pas) ; les volets ne bougent pas une seconde fois. Un test s’arrête toujours en restaurant tout, quelle que soit l’option.
 
 ## Histoire, rythme et finale
 
@@ -241,7 +261,7 @@ Avant toute commande, les états des appareils éligibles sont persistés. L’a
 
 La musique, les files d’attente, les groupes d’enceintes et les applications TV antérieures ne sont pas restaurés. La restauration peut remplacer un réglage manuel effectué pendant la session.
 
-Les volets doivent avoir une classe `blind`, `curtain`, `shade` ou `shutter`, une position connue et accepter les positions. Les portes, portails, garages et volets déjà en mouvement sont exclus. Les volets ne bougent que dans la scène **Apparition**, jamais en mode enfants, pas avant le délai de 180 secondes (par défaut) après le démarrage de la session, et d’un pas de 5 % seulement en profil Familiale (10 % Inquiétante, 15 % Maison hantée). Quand un volet est ignoré, le journal contient `cover_ignored` ou `cover_skipped` avec la raison. Un appareil indisponible au début est ignoré jusqu’à la session suivante. Choisir pour les prises uniquement des décorations adaptées au spectacle : la nature de l’appareil branché n’est pas détectable.
+Les volets doivent avoir une classe `blind`, `curtain`, `shade` ou `shutter`, une position connue et accepter les positions. Les portes, portails, garages et volets déjà en mouvement sont exclus. Les volets ne bougent que dans les scènes **Apparition** (après le délai de 180 secondes par défaut depuis le démarrage de la session, d’un pas de 5 % en profil Familiale, 10 % Inquiétante, 15 % Maison hantée) et **Poltergeist** (sans attendre ce délai, d’au moins 20 %), jamais en mode enfants. Quand un volet est ignoré, le journal contient `cover_ignored` ou `cover_skipped` avec la raison. Un appareil indisponible au début est ignoré jusqu’à la session suivante. Choisir pour les prises uniquement des décorations adaptées au spectacle : la nature de l’appareil branché n’est pas détectable.
 
 Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le capteur affiche `recovery_pending`, utiliser **Arrêter et restaurer**. Les échecs de restauration restent sauvegardés pour nouvel essai et bloquent un nouveau démarrage. Un arrêt normal de HA tente la restauration sans garantie si les appareils ou le réseau sont déjà arrêtés. Si un appareil ne peut vraiment pas être restauré (supprimé, hors ligne définitivement), le bouton **Abandonner la restauration** oublie l’instantané sans rien envoyer aux appareils ; vérifier ensuite leur état à la main. L’attribut `snapshot_entities` du capteur État liste les appareils en attente, et les événements `device_error` du journal indiquent l’entité et l’action en échec. Une commande acceptée ne garantit pas qu’un volet a atteint physiquement sa position.
 
@@ -251,7 +271,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-50 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+55 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les cinq vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

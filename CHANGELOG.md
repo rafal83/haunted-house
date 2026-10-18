@@ -1,5 +1,13 @@
 # Historique
 
+## 0.5.0 — 18 octobre 2026
+
+- **Scènes cohérentes et différentes** : chaque scène a sa propre signature et n'utilise que les appareils qui lui conviennent. Bougies (lumière seule, silencieuse), Cimetière (brume et voix, sans scintillement), Orage (éclairs puis tonnerre), Apparition (le grand sursaut), Maison hantée (lueur rouge qui respire, jamais de cri), Sons spatialisés, On frappe et Chuchotements (son seul), Poursuite (les lampes s'éteignent une à une), Rire derrière vous.
+- **Cinq nouvelles scènes** : Coupure de courant, Chuchotements, On frappe, Poltergeist, Écran hanté.
+- Le tirage automatique ne choisit que des scènes jouables avec les appareils de la zone. Les zones qui avaient la liste complète reçoivent les nouvelles scènes.
+- **Poltergeist** déplace les volets sans attendre le délai, d'au moins 20 %.
+- La remise à la normale entre scènes ne touche que les lampes réellement modifiées.
+
 ## 0.4.4 — 18 octobre 2026
 
 - Les vidéos sont envoyées avec le type `video/mp4` (attendu par Cast et DLNA), avec repli sur `video` ; le type accepté par chaque lecteur est mémorisé.

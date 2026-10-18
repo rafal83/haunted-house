@@ -17,6 +17,7 @@ WALK_SOUND = ContextVar("haunted_walk_sound", default="footsteps")
 class StoryFeatures:
     def init_story(self):
         self._story_task = None
+        self._dirty_lights = set()  # Lights a scene touched, to restore only those between scenes.
         self._video_rejected = set()  # Players that refused video playback; not retried until reload.
         self._video_type = {}  # Content type each player accepted: a MIME type first (Cast, DLNA), then plain "video".
         self.test_choice = {}

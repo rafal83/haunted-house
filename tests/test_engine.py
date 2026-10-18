@@ -327,7 +327,8 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
                 await engine.effect(scene=scene)
                 await complete(engine)
                 self.assertEqual(engine.errors, 0)
-                self.assertTrue(hass.calls)
+                if scene != 'screen':  # The TV-only scene has nothing to do in a zone without a TV.
+                    self.assertTrue(hass.calls)
                 await engine.stop()
                 self.assertFalse(engine.snapshot)
 

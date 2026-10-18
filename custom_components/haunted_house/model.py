@@ -1,6 +1,6 @@
 """Pure configuration migration/validation helpers, independent of HA."""
 from copy import deepcopy
-from .const import DEFAULTS, ZONE_DEFAULTS, ENTITY_KEYS, INTENSITIES, SCENES
+from .const import DEFAULTS, ZONE_DEFAULTS, ENTITY_KEYS, INTENSITIES, LEGACY_SCENES, SCENES
 
 
 def normalize(options):
@@ -14,6 +14,9 @@ def normalize(options):
     # Keys that are no longer supported (custom sound/video URLs) are dropped.
     result["zones"] = [{k: v for k, v in (deepcopy(ZONE_DEFAULTS) | zone).items() if k in ZONE_DEFAULTS or k == "id"}
                        for zone in zones]
+    for zone in result["zones"]:
+        if set(zone["scenes"]) == set(LEGACY_SCENES):
+            zone["scenes"] = list(SCENES)
     return result
 
 
