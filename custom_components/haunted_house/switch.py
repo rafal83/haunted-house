@@ -15,7 +15,7 @@ class HauntedSwitch(HauntedEntity, SwitchEntity):
 
     @property
     def is_on(self):
-        return self.engine.running
+        return self.engine.haunted_mode
 
     async def async_turn_on(self, **kwargs):
         try:

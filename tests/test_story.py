@@ -351,6 +351,65 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
             self.assertEqual(any(n.startswith('jumpscare') for n in names), not soft)
             await engine.stop()
 
+    async def test_manual_surprise_works_without_haunted_mode_and_cleans_up(self):
+        engine, hass, states = make({'lights': ['light.a'], 'media_players': ['media_player.a']})
+        self.assertFalse(engine.running)
+        self.assertTrue(await engine.effect(scare=True, zone_id='maison', scene='candle'))
+        self.assertTrue(engine.running)
+        self.assertFalse(engine.haunted_mode)  # the "haunted mode" switch stays off
+        self.assertIsNone(engine._task)  # no scheduler
+        await complete(engine)
+        await engine._end_task
+        self.assertFalse(engine.running)
+        self.assertFalse(engine.snapshot)
+        last = [c for c in hass.calls if c[0] == 'light'][-1]
+        self.assertEqual(last[2].get('brightness'), 142)  # back to the state before the surprise
+        self.assertEqual(engine.last_effect, 'idle')
+
+    async def test_manual_surprise_only_touches_its_own_zone(self):
+        opts = normalize({'lights': ['light.a']})
+        opts['zones'].append(normalize({'lights': ['light.b']})['zones'][0] | {'id': 'salon', 'name': 'Salon'})
+        engine, hass, states = make(opts)
+        await engine.effect(scare=True, zone_id='maison', scene='candle')
+        await complete(engine)
+        await engine._end_task
+        self.assertFalse([c for c in hass.calls if c[2]['entity_id'] == 'light.b'])
+
+    async def test_ghost_walk_works_without_haunted_mode_and_cleans_up(self):
+        opts = two_zones()
+        opts['ghost_route'] = ['salon', 'maison']
+        engine, hass, states = make(opts)
+        self.assertTrue(await engine.walk())
+        self.assertFalse(engine.haunted_mode)
+        await engine._story_task
+        await engine._end_task
+        self.assertFalse(engine.running)
+        self.assertFalse(engine.snapshot)
+        self.assertEqual([e['zone_id'] for e in engine.history if e['kind'] == 'ghost_step'], ['salon', 'maison'])
+
+    async def test_switching_haunted_mode_on_during_a_surprise_promotes_it(self):
+        engine, hass, states = make({'lights': ['light.a'], 'media_players': ['media_player.a']})
+        await engine.effect(scare=True, zone_id='maison', scene='candle')
+        await engine.start()
+        self.assertTrue(engine.haunted_mode)
+        self.assertIsNotNone(engine._task)
+        await complete(engine)
+        self.assertIsNone(engine._end_task)  # nothing ends the session any more
+        self.assertTrue(engine.running)  # the surprise ending must not stop haunted mode
+        await engine.stop()
+        self.assertFalse(engine.snapshot)
+
+    async def test_sensors_are_ignored_during_a_one_off_surprise(self):
+        opts = normalize({'lights': ['light.a'], 'media_players': ['media_player.a']})
+        opts['zones'][0]['triggers'] = ['binary_sensor.entry']
+        engine, hass, states = make(opts)
+        await engine.effect(scare=True, zone_id='maison', scene='candle')
+        before = len(engine.history)
+        await engine.handle_event('binary_sensor.entry', State('off'), State('on'))
+        self.assertEqual([e['kind'] for e in engine.history[before:] if e['kind'] == 'scene_started'], [])
+        await complete(engine)
+        await engine._end_task
+
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
         opts['ghost_route'] = ['salon', 'maison']

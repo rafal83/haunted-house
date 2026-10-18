@@ -23,7 +23,10 @@ class HauntedButton(HauntedEntity, ButtonEntity):
         if self._stop:
             await self.engine.stop()
         else:
-            await self.engine.effect(scare=True)
+            try:
+                await self.engine.effect(scare=True)
+            except ValueError as err:
+                raise HomeAssistantError(str(err)) from err
 
 
 class DiscardButton(HauntedEntity, ButtonEntity):
@@ -43,7 +46,10 @@ class ZoneButton(HauntedEntity, ButtonEntity):
         super().__init__(engine, f"surprise_{self.zone_id}", "Surprise", "mdi:halloween", zone)
 
     async def async_press(self):
-        await self.engine.effect(scare=True, zone_id=self.zone_id)
+        try:
+            await self.engine.effect(scare=True, zone_id=self.zone_id)
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
 
 class GhostButton(HauntedEntity, ButtonEntity):
@@ -51,7 +57,10 @@ class GhostButton(HauntedEntity, ButtonEntity):
         super().__init__(engine, "ghost_walk", "Faire circuler le fantôme", "mdi:ghost")
 
     async def async_press(self):
-        await self.engine.walk()
+        try:
+            await self.engine.walk()
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
 
 class TestButton(HauntedEntity, ButtonEntity):

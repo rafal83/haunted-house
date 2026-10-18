@@ -20,7 +20,7 @@ class HauntedStatus(HauntedEntity, SensorEntity):
 
     @property
     def extra_state_attributes(self):
-        return {"running": self.engine.running, "errors": self.engine.errors,
+        return {"running": self.engine.running, "oneshot": self.engine._oneshot, "errors": self.engine.errors,
                 "intensity": self.engine.options["intensity"], "phase": self.engine.phase, "last_zone": self.engine.last_zone,
                 "preview": self.engine.last_preview, "ghost_route_active": list(self.engine._reserved_zones),
                 "restoration_pending": bool(self.engine.snapshot) and not self.engine.running,

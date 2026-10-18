@@ -49,7 +49,7 @@ class StoryFeatures:
     def phase(self):
         if not self.running:
             return "idle"
-        if self._testing or not self.options["progression"]:
+        if self._testing or self._oneshot or not self.options["progression"]:
             return "steady"
         fraction = (time.monotonic() - self._started_at) / max(1, self.options["duration"] * 60)
         return "calm" if fraction < .4 else "rising" if fraction < .8 else "finale"
@@ -131,9 +131,14 @@ class StoryFeatures:
         route = list(zone_ids or self.options["ghost_route"] or self.zones)
         if not route or any(z not in self.zones for z in route) or len(route) != len(set(route)):
             raise ValueError("Invalid ghost route")
+        if not self.running:  # The ghost can walk without haunted mode: one-off session for its route.
+            await self.start(oneshot=True, zones=route)
         async with self._lock:
             if not self.running or self._testing or (self._story_task and not self._story_task.done()):
                 return False
+            if self._oneshot:
+                self._snapshot_zones(route)
+                await self.save()
             tasks = [self._effects[z] for z in route if z in self._effects and not self._effects[z].done()]
             for task in tasks:
                 task.cancel()
@@ -164,9 +169,10 @@ class StoryFeatures:
         finally:
             self._reserved_zones.clear()
             self.notify()
+            self._schedule_end_oneshot()
 
     async def handle_event(self, entity_id, old, new):
-        if not self.running or self._testing:
+        if not self.running or self._testing or self._oneshot:
             return
         for zone_id, zone in self.zones.items():
             if entity_id in zone["reactive_lights"] and old and new and old.state == "on" and new.state == "off":

@@ -1,5 +1,10 @@
 # Historique
 
+## 0.7.0 — 18 octobre 2026
+
+- **Surprise et fantôme sans mode hanté** : « Déclencher une surprise », les boutons « Surprise NOM », « Faire circuler le fantôme » et les actions `scare`, `play_scene`, `ghost_walk` ouvrent une session ponctuelle quand le mode hanté est éteint : seuls les appareils concernés sont mémorisés, la scène ou le parcours est joué une fois, puis tout est restauré automatiquement. L'interrupteur « Mode hanté » reste éteint.
+- Allumer le mode hanté pendant une surprise promeut la session en vrai mode hanté.
+
 ## 0.6.1 — 18 octobre 2026
 
 - **Les vidéos ont maintenant du son** : bande son synchronisée avec l'image (silence pendant le noir, cri au moment où le visage surgit, parasites sur les glitchs). Le son sort par la TV.

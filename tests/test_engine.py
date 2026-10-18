@@ -335,7 +335,8 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_invalid_requests_and_inactive_triggers(self):
         engine, hass, states = make()
-        self.assertFalse(await engine.effect(scare=True))
+        self.assertFalse(await engine.effect(scare=True, source='trigger'))  # sensors need haunted mode
+        self.assertFalse(engine.running)
         await engine.start()
         with self.assertRaises(ValueError):
             await engine.effect(zone_id='missing')

@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.6.1.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.7.0.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 62 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 67 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -33,7 +33,7 @@ Le paquet s’installe via HACS (dépôt personnalisé) ou manuellement. Il n’
 2. Dans le second formulaire, indiquer seulement si les TV/projecteurs peuvent être allumés. Les sons et vidéos sont fournis par l’intégration : aucune URL à saisir.
 3. Depuis **Configurer → Prévisualiser et tester une scène**, sélectionner cette zone et **Orage**. Vérifier l’aperçu puis lancer le test. Il s’arrête après 30 secondes maximum et restaure les états.
 4. Ajouter les autres pièces, puis définir **Histoire et parcours**.
-5. Activer **Mode hanté**. Utiliser le bouton **Faire circuler le fantôme** pour lancer un parcours immédiatement.
+5. Activer **Mode hanté**, ou simplement appuyer sur **Déclencher une surprise** / **Faire circuler le fantôme** : ces boutons marchent aussi sans mode hanté (voir « Surprise et fantôme sans mode hanté »).
 
 Les enceintes et TV doivent pouvoir joindre l’URL interne de Home Assistant (**Paramètres → Système → Réseau**), car les médias sont servis par l’intégration. Aucun appareil n’est sélectionné automatiquement.
 
@@ -146,7 +146,7 @@ Valeurs initiales : session de 30 minutes, intervalle moyen 20 secondes, surpris
 
 ## Parcours du fantôme
 
-Dans **Histoire et parcours**, sélectionner les zones dans l’ordre voulu. Vide = ordre de la liste des zones enregistrées. Le bouton **Faire circuler le fantôme** lance le parcours pendant une session active. L’option de circulation automatique relance un parcours à l’intervalle choisi ; elle est désactivée par défaut.
+Dans **Histoire et parcours**, sélectionner les zones dans l’ordre voulu. Vide = ordre de la liste des zones enregistrées. Le bouton **Faire circuler le fantôme** lance le parcours, avec ou sans mode hanté. L’option de circulation automatique relance un parcours à l’intervalle choisi ; elle est désactivée par défaut.
 
 Le parcours prend temporairement la main sur ses pièces et annule leurs scènes précédentes. Une détection prioritaire dans l’une de ces pièces interrompt le parcours. Un seul parcours peut être actif à la fois. Les pièces enfants jouent leur variante douce.
 
@@ -201,6 +201,16 @@ Depuis la page de l’appareil de la zone (« Haunted House NOM »), sans passer
 Le test est une session isolée, sans parcours automatique, réaction aux capteurs, progression ou autres zones. Il refuse de démarrer tant que le spectacle est actif ou qu’une restauration reste en attente. Il sauvegarde les appareils de sa zone, joue la scène pendant 30 secondes maximum puis restaure, y compris après interruption. Le bouton global d’arrêt peut l’interrompre.
 
 Un test ignore le délai de démarrage des volets : la scène Apparition les fait bouger tout de suite, si le volet est éligible. Un aperçu liste les appareils sélectionnés, pas la garantie que leurs fonctionnalités soient toutes disponibles.
+
+## Surprise et fantôme sans mode hanté
+
+**Déclencher une surprise**, les boutons **Surprise NOM** de chaque zone, **Faire circuler le fantôme** et les actions `scare`, `play_scene` et `ghost_walk` fonctionnent **sans activer le mode hanté**. Si le mode hanté est éteint, l’intégration ouvre une session ponctuelle :
+
+1. elle mémorise l’état des seuls appareils de la zone concernée (ou des zones du parcours) ;
+2. elle joue la scène ou le parcours une seule fois : pas de planificateur, pas de scènes aléatoires, les capteurs de présence sont ignorés ;
+3. dès que tout est terminé, elle restaure l’état d’origine (lumières, volets, enceintes, TV) et la session s’arrête.
+
+L’interrupteur **Mode hanté** reste éteint pendant ce temps. Si vous l’allumez pendant une surprise, la session devient le vrai mode hanté et ne s’arrête plus toute seule. Un test (bouton **Tester**) garde ses propres règles et exige toujours que rien d’autre ne tourne.
 
 ## Journal et commandes
 
@@ -274,7 +284,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-62 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+67 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les cinq vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

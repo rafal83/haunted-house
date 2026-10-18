@@ -33,6 +33,8 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
         self._effects = {}
         self._lock = asyncio.Lock()
         self._store_lock = asyncio.Lock()
+        self._oneshot = False
+        self._end_task = None
         self.verify_delay = 2.5  # Seconds a light gets to settle before its restored state is checked.
         self._commands = asyncio.Semaphore(4)
         self._last_cover = {}
@@ -80,7 +82,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             self.record("device_error", entity_id=entity_id, action=f"{domain}.{service}", zone_id=CURRENT_ZONE.get())
             return False
 
-    def usable(self, key, zone_id=None):
+    def usable(self, key, zone_id=None, fresh=False):
         ids = self.zones[zone_id][key] if zone_id is not None else [e for z in self.zones.values() for e in z[key]]
         registry = er.async_get(self.hass)
         result = []
@@ -88,25 +90,25 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             registered = registry.async_get(entity_id)
             if registered and registered.platform == DOMAIN:
                 continue
-            if self.running and entity_id not in self.snapshot:
+            if self.running and not fresh and entity_id not in self.snapshot:
                 continue
             state = self.hass.states.get(entity_id)
             if state and state.state not in ("unavailable", "unknown"):
                 result.append(entity_id)
         return result
 
-    async def start(self, test_zone=None):
-        async with self._lock:
-            if self.running:
-                if test_zone is not None:
-                    raise ValueError("A session is already active")
-                return
-            if self.snapshot:
-                raise ValueError("Restore the previous session before starting a new one")
-            if test_zone is not None and test_zone not in self.zones:
-                raise ValueError("Unknown test zone")
+    @property
+    def haunted_mode(self):
+        """True for the real haunted mode, not for a test or a one-off surprise."""
+        return self.running and not self._testing and not self._oneshot
+
+    def _snapshot_zones(self, zone_ids):
+        """Remember the state of the devices of these zones (None = every zone) before the show touches them."""
+        for zone_id in zone_ids:
             for key in ENTITY_KEYS:
-                for entity_id in self.usable(key, test_zone):
+                for entity_id in self.usable(key, zone_id, fresh=True):
+                    if entity_id in self.snapshot:
+                        continue
                     state = self.hass.states.get(entity_id)
                     attrs = state.attributes
                     if key == "covers" and (reason := self._cover_problem(state)):
@@ -114,6 +116,28 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
                         continue
                     self.snapshot[entity_id] = {"state": state.state,
                                                "attributes": {k: attrs[k] for k in ATTRS if attrs.get(k) is not None}}
+
+    async def start(self, test_zone=None, oneshot=False, zones=None):
+        """Start haunted mode, an isolated test (test_zone) or a one-off session (oneshot) for a manual surprise."""
+        async with self._lock:
+            if self.running:
+                if test_zone is not None:
+                    raise ValueError("A session is already active")
+                if self._oneshot and not oneshot:  # Haunted mode switched on during a one-off surprise.
+                    self._snapshot_zones([None])
+                    await self.save()
+                    self._oneshot = False
+                    self._started_at = self._last_walk = time.monotonic()
+                    self._task = self.hass.async_create_background_task(self._run(), "Haunted House scheduler")
+                    self.record("session_started", promoted_from_oneshot=True)
+                    self.notify()
+                return
+            if self.snapshot:
+                raise ValueError("Restore the previous session before starting a new one")
+            if test_zone is not None and test_zone not in self.zones:
+                raise ValueError("Unknown test zone")
+            scope = [test_zone] if test_zone is not None else list(zones) if zones else [None]
+            self._snapshot_zones(scope)
             if not self.snapshot:
                 raise ValueError("No available eligible entity selected")
             self._touched_media.clear()
@@ -127,6 +151,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
                 raise
             self.running = True
             self._testing = test_zone is not None
+            self._oneshot = oneshot and test_zone is None
             self._started_at = self._last_walk = time.monotonic()
             self._last_presence = None
             self._presence_revision = 0
@@ -135,10 +160,21 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             self._last_cover = {z: time.monotonic() for z in self.zones}
             self._last_scare.clear()
             self.last_effect = "started"
-            self.record("session_started", test_zone=test_zone)
-            if not self._testing:
+            self.record("session_started", test_zone=test_zone, oneshot=self._oneshot)
+            if not self._testing and not self._oneshot:
                 self._task = self.hass.async_create_background_task(self._run(), "Haunted House scheduler")
             self.notify()
+
+    async def _end_oneshot(self):
+        """End a one-off session once nothing is playing any more; everything is restored."""
+        await asyncio.sleep(.05)  # Let the finishing task be marked done.
+        busy = any(not t.done() for t in self._effects.values()) or (self._story_task and not self._story_task.done())
+        if self.running and self._oneshot and not busy:
+            await self.stop()
+
+    def _schedule_end_oneshot(self):
+        if self._oneshot:
+            self._end_task = self.hass.async_create_task(self._end_oneshot())
 
     @staticmethod
     def _cover_problem(state):
@@ -169,6 +205,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             self._reaction_tasks.clear()
             self._reserved_zones.clear()
             self._testing = False
+            self._oneshot = False
             await self._restore()
             for power_id in list(self._powered_extra):  # Safety net: a TV woken by the show goes back to sleep.
                 if await self.call(power_id.split(".", 1)[0], "turn_off", power_id):
@@ -297,6 +334,11 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
 
     async def effect(self, scare=False, zone_id=None, scene=None, source="manual"):
         """Schedule and return immediately. Triggered scenes preempt their own zone."""
+        if not self.running and source == "manual":  # A manual surprise works without haunted mode: one-off session.
+            if zone_id is not None and zone_id not in self.zones:
+                raise ValueError("Unknown zone ID")
+            zone_id = zone_id or random.choice(list(self.zones))
+            await self.start(oneshot=True, zones=[zone_id])
         async with self._lock:
             if not self.running or (self._testing and source != "test"):
                 return False
@@ -306,6 +348,9 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
                 raise ValueError("Unknown scene")
             zone_id = zone_id or random.choice(list(self.zones))
             zone = self.zones[zone_id]
+            if self._oneshot:  # A one-off session only knows the zones it was started for.
+                self._snapshot_zones([zone_id])
+                await self.save()
             now = time.monotonic()
             if scare and now - self._last_scare.get(zone_id, float('-inf')) < self.options["trigger_cooldown"]:
                 return False
@@ -331,7 +376,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             scene = scene or (zone["trigger_scene"] if scare else random.choice(candidates))
             self._effects[zone_id] = self.hass.async_create_background_task(
                 self._scene(zone_id, scene), f"Haunted House {zone_id} {scene}")
-            self._effects[zone_id].add_done_callback(lambda task: self.notify())
+            self._effects[zone_id].add_done_callback(lambda task: (self.notify(), self._schedule_end_oneshot()))
             effective_scene = "kids" if self.is_kids(zone_id) else scene
             self.record("scene_started", zone_id=zone_id, scene=effective_scene, requested_scene=scene, trigger=source, phase=self.phase)
             self.last_zone, self.last_effect = zone_id, effective_scene
@@ -346,7 +391,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
         outcome = "completed"
         try:
             await self._scene_body(zone_id, scene)
-            if self.running and not self._testing and self.options["restore_between_scenes"]:
+            if self.running and not self._testing and not self._oneshot and self.options["restore_between_scenes"]:
                 await self._normal_lights(zone_id)
         except asyncio.CancelledError:
             outcome = "cancelled"
@@ -428,7 +473,7 @@ class HauntedEngine(HorrorEffects, StoryFeatures):
             return
         now = time.monotonic()
         wait = self.options["cover_cooldown"] - (now - self._last_cover.get(zone_id, now))
-        if wait > 0 and not self._testing and not force:  # A test is explicit, so it skips the startup delay.
+        if wait > 0 and not (self._testing or self._oneshot) and not force:  # A test is explicit, so it skips the startup delay.
             self.record("cover_skipped", zone_id=zone_id, reason="cooldown", seconds_left=round(wait))
             return
         ids = self.usable("covers", zone_id)
