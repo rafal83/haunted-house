@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.3.3.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.3.4.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 45 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 46 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -176,7 +176,7 @@ Depuis la page de l’appareil **Haunted House**, sans passer par Configurer : c
 
 Le test est une session isolée, sans parcours automatique, réaction aux capteurs, progression ou autres zones. Il refuse de démarrer tant que le spectacle est actif ou qu’une restauration reste en attente. Il sauvegarde les appareils de sa zone, joue la scène pendant 20 secondes maximum puis restaure, y compris après interruption. Le bouton global d’arrêt peut l’interrompre.
 
-Les volets conservent leur délai de démarrage : un test court ne les fait donc généralement pas bouger. Un aperçu liste les appareils sélectionnés, pas la garantie que leurs fonctionnalités soient toutes disponibles.
+Un test ignore le délai de démarrage des volets : la scène Apparition les fait bouger tout de suite, si le volet est éligible. Un aperçu liste les appareils sélectionnés, pas la garantie que leurs fonctionnalités soient toutes disponibles.
 
 ## Journal et commandes
 
@@ -240,7 +240,7 @@ Avant toute commande, les états des appareils éligibles sont persistés. L’a
 
 La musique, les files d’attente, les groupes d’enceintes et les applications TV antérieures ne sont pas restaurés. La restauration peut remplacer un réglage manuel effectué pendant la session.
 
-Les volets doivent avoir une classe `blind`, `curtain`, `shade` ou `shutter`, une position connue et accepter les positions. Les portes, portails, garages et volets déjà en mouvement sont exclus. Un appareil indisponible au début est ignoré jusqu’à la session suivante. Choisir pour les prises uniquement des décorations adaptées au spectacle : la nature de l’appareil branché n’est pas détectable.
+Les volets doivent avoir une classe `blind`, `curtain`, `shade` ou `shutter`, une position connue et accepter les positions. Les portes, portails, garages et volets déjà en mouvement sont exclus. Les volets ne bougent que dans la scène **Apparition**, jamais en mode enfants, pas avant le délai de 180 secondes (par défaut) après le démarrage de la session, et d’un pas de 5 % seulement en profil Familiale (10 % Inquiétante, 15 % Maison hantée). Quand un volet est ignoré, le journal contient `cover_ignored` ou `cover_skipped` avec la raison. Un appareil indisponible au début est ignoré jusqu’à la session suivante. Choisir pour les prises uniquement des décorations adaptées au spectacle : la nature de l’appareil branché n’est pas détectable.
 
 Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le capteur affiche `recovery_pending`, utiliser **Arrêter et restaurer**. Les échecs de restauration restent sauvegardés pour nouvel essai et bloquent un nouveau démarrage. Un arrêt normal de HA tente la restauration sans garantie si les appareils ou le réseau sont déjà arrêtés. Si un appareil ne peut vraiment pas être restauré (supprimé, hors ligne définitivement), le bouton **Abandonner la restauration** oublie l’instantané sans rien envoyer aux appareils ; vérifier ensuite leur état à la main. L’attribut `snapshot_entities` du capteur État liste les appareils en attente, et les événements `device_error` du journal indiquent l’entité et l’action en échec. Une commande acceptée ne garantit pas qu’un volet a atteint physiquement sa position.
 
@@ -250,7 +250,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-45 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+46 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les trois vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

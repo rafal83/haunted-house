@@ -1,5 +1,10 @@
 # Historique
 
+## 0.3.4 — 18 octobre 2026
+
+- Les volets ignorés ou non déplacés sont maintenant expliqués dans le journal (`cover_ignored`, `cover_skipped` avec la raison : classe, positionnement non pris en charge, position inconnue, délai).
+- Un test ignore le délai de démarrage des volets, pour pouvoir les essayer immédiatement.
+
 ## 0.3.3 — 18 octobre 2026
 
 - Liste **Scène de test** par zone sur la page de l'appareil : choisir une scène puis utiliser les boutons Aperçu/Tester, sans passer par Configurer.

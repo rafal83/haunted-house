@@ -106,10 +106,8 @@ class HauntedEngine(StoryFeatures):
                 for entity_id in self.usable(key, test_zone):
                     state = self.hass.states.get(entity_id)
                     attrs = state.attributes
-                    if key == "covers" and (attrs.get("device_class") not in ("blind", "curtain", "shade", "shutter")
-                            or not attrs.get("supported_features", 0) & 4
-                            or not isinstance(attrs.get("current_position"), (int, float))
-                            or state.state in ("opening", "closing")):
+                    if key == "covers" and (reason := self._cover_problem(state)):
+                        self.record("cover_ignored", entity_id=entity_id, reason=reason)
                         continue
                     self.snapshot[entity_id] = {"state": state.state,
                                                "attributes": {k: attrs[k] for k in ATTRS if attrs.get(k) is not None}}
@@ -137,6 +135,20 @@ class HauntedEngine(StoryFeatures):
             if not self._testing:
                 self._task = self.hass.async_create_background_task(self._run(), "Haunted House scheduler")
             self.notify()
+
+    @staticmethod
+    def _cover_problem(state):
+        """Why a cover cannot be moved safely, or None when it is eligible."""
+        attrs = state.attributes
+        if attrs.get("device_class") not in ("blind", "curtain", "shade", "shutter"):
+            return "device_class_not_blind_curtain_shade_shutter"
+        if not attrs.get("supported_features", 0) & 4:
+            return "set_position_not_supported"
+        if not isinstance(attrs.get("current_position"), (int, float)):
+            return "position_unknown"
+        if state.state in ("opening", "closing"):
+            return "already_moving"
+        return None
 
     async def stop(self):
         async with self._lock:
@@ -391,19 +403,23 @@ class HauntedEngine(StoryFeatures):
     async def _cover(self, zone_id):
         if self.is_kids(zone_id):
             return
+        if not self.zones[zone_id]["covers"]:
+            return
         now = time.monotonic()
-        if now - self._last_cover.get(zone_id, now) < self.options["cover_cooldown"]:
+        wait = self.options["cover_cooldown"] - (now - self._last_cover.get(zone_id, now))
+        if wait > 0 and not self._testing:  # A test is explicit, so it skips the startup delay.
+            self.record("cover_skipped", zone_id=zone_id, reason="cooldown", seconds_left=round(wait))
             return
         ids = self.usable("covers", zone_id)
         if not ids:
+            self.record("cover_skipped", zone_id=zone_id, reason="no_eligible_cover")
             return
         entity_id = random.choice(ids)
-        attrs = self.hass.states.get(entity_id).attributes
-        if attrs.get("device_class") not in ("blind", "curtain", "shade", "shutter"):
+        state = self.hass.states.get(entity_id)
+        if reason := self._cover_problem(state):
+            self.record("cover_skipped", zone_id=zone_id, entity_id=entity_id, reason=reason)
             return
-        pos = attrs.get("current_position")
-        if not isinstance(pos, (int, float)):
-            return
+        pos = state.attributes["current_position"]
         self._last_cover[zone_id] = now
         offset = random.choice([-1, 1]) * self.profile["cover_step"]
         await self.call("cover", "set_cover_position", entity_id, position=max(0, min(100, pos + offset)))

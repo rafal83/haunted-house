@@ -215,6 +215,21 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(len(hass.calls), count)
         await engine.stop()
 
+    async def test_cover_skips_are_explained_and_tests_bypass_cooldown(self):
+        engine, hass, states = make({'lights': [], 'media_players': [], 'switches': []})
+        await engine.start()
+        reasons = {e['entity_id']: e['reason'] for e in engine.history if e['kind'] == 'cover_ignored'}
+        self.assertEqual(reasons['cover.gate'], 'device_class_not_blind_curtain_shade_shutter')
+        self.assertEqual(reasons['cover.unknown'], 'device_class_not_blind_curtain_shade_shutter')
+        await engine._cover('maison')
+        self.assertEqual(engine.history[-1]['kind'], 'cover_skipped')
+        self.assertEqual(engine.history[-1]['reason'], 'cooldown')
+        self.assertFalse(hass.calls)
+        engine._testing = True
+        await engine._cover('maison')
+        self.assertEqual(hass.calls[-1][1], 'set_cover_position')
+        await engine.stop()
+
     async def test_recovery_after_restart(self):
         engine, hass, states = make()
         await engine.start()
