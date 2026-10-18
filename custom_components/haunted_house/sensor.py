@@ -6,7 +6,8 @@ from .entity import HauntedEntity
 
 async def async_setup_entry(hass, entry, async_add_entities):
     engine = hass.data[DOMAIN][entry.entry_id]
-    async_add_entities([HauntedStatus(engine), NarrativeStatus(engine), HistoryStatus(engine)])
+    async_add_entities([HauntedStatus(engine), NarrativeStatus(engine), HistoryStatus(engine),
+                        *[ZoneStatus(engine, z) for z in engine.zones.values()]])
 
 
 class HauntedStatus(HauntedEntity, SensorEntity):
@@ -50,3 +51,19 @@ class HistoryStatus(HauntedEntity, SensorEntity):
     @property
     def extra_state_attributes(self):
         return {"count": len(self.engine.history), "events": self.engine.history[-20:]}
+
+
+class ZoneStatus(HauntedEntity, SensorEntity):
+    def __init__(self, engine, zone):
+        self.zone_id = zone["id"]
+        super().__init__(engine, f"zone_status_{self.zone_id}", "Dernière scène", "mdi:ghost-outline", zone)
+
+    @property
+    def native_value(self):
+        return self.engine.zone_last_effect.get(self.zone_id, "idle")
+
+    @property
+    def extra_state_attributes(self):
+        task = self.engine._effects.get(self.zone_id)
+        return {"zone": self.engine.zones[self.zone_id]["name"], "active": bool(task and not task.done()),
+                "chosen_test_scene": self.engine.chosen_scene(self.zone_id)}

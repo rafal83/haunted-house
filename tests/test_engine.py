@@ -19,6 +19,9 @@ def module(name):
 module('homeassistant')
 module('homeassistant.helpers')
 module('homeassistant.core').Context = lambda: types.SimpleNamespace(id="haunted-context", parent_id=None)
+network = module('homeassistant.helpers.network')
+network.NoURLAvailableError = type('NoURLAvailableError', (Exception,), {})
+network.get_url = lambda hass, prefer_external=False: 'http://ha.local:8123'
 module('homeassistant.helpers.dispatcher').async_dispatcher_send = lambda *a: None
 module('homeassistant.helpers.entity_registry').async_get = lambda hass: types.SimpleNamespace(async_get=lambda entity: None)
 
@@ -118,12 +121,12 @@ async def complete(engine, zone='maison'):
 
 class ModelTests(unittest.TestCase):
     def test_v1_migration(self):
-        old = {'lights': ['light.a'], 'duration': 17, 'sounds': 'http://example.test/a.mp3'}
+        old = {'lights': ['light.a'], 'duration': 17, 'sounds': 'http://example.test/a.mp3'}  # URLs are no longer supported
         new = normalize(old)
         self.assertEqual(new['zones'][0]['id'], 'maison')
         self.assertEqual(new['zones'][0]['lights'], ['light.a'])
         self.assertEqual(new['duration'], 17)
-        self.assertEqual(new['sounds'], old['sounds'])
+        self.assertNotIn('sounds', new)
         new['zones'][0]['lights'].append('light.b')
         self.assertEqual(old['lights'], ['light.a'])
         self.assertEqual(normalize(new), new)
@@ -135,12 +138,11 @@ class ModelTests(unittest.TestCase):
         other['lights'] = ['light.b']
         self.assertFalse(validate_zone(other, [zone]))
 
-    def test_validation_empty_wrong_domain_bad_audio(self):
+    def test_validation_empty_wrong_domain(self):
         zone = normalize({'lights': ['light.a']})['zones'][0]
         self.assertEqual(validate_zone(zone | {'name': ' '}, []), {'name': 'empty_name'})
         self.assertEqual(validate_zone(zone | {'lights': []}, []), {'base': 'empty_zone'})
         self.assertEqual(validate_zone(zone | {'lights': ['switch.x']}, []), {'lights': 'invalid_entity'})
-        self.assertEqual(validate_zone(zone | {'sounds': 'file:///tmp/x'}, []), {'sounds': 'invalid_sound'})
         self.assertEqual(validate_zone(zone | {'scenes': []}, []), {'scenes': 'invalid_scene'})
 
     def test_triggers_only_on_real_transitions(self):
@@ -189,7 +191,7 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(await engine.effect(scare=True))
         self.assertFalse(await engine.effect(scare=True))
         await complete(engine)
-        self.assertEqual(sum(c[1] == 'play_media' for c in hass.calls), 1)
+        self.assertEqual(sum(c[1] == 'play_media' for c in hass.calls), 2)  # whisper build-up, then the apparition
         await engine.stop()
         self.assertTrue(any(c[1] == 'media_stop' for c in hass.calls))
         self.assertIn(('media_player', 'volume_set', {'entity_id': 'media_player.a', 'volume_level': .4}), hass.calls)
@@ -296,9 +298,8 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
         self.assertIs(engine._effects['salon'], b)
         await engine.stop()
 
-    async def test_zone_isolation_and_zone_sound(self):
+    async def test_zone_isolation_and_bundled_sound(self):
         opts = normalize({'lights': ['light.a'], 'media_players': ['media_player.a']})
-        opts['zones'][0]['sounds'] = 'http://example.test/zone.mp3'
         opts['zones'].append(normalize({'lights': ['light.b']})['zones'][0] | {'id': 'salon'})
         engine, hass, states = make(opts)
         await engine.start()
@@ -306,7 +307,7 @@ class EngineTests(unittest.IsolatedAsyncioTestCase):
         await complete(engine)
         self.assertFalse(any(c[2]['entity_id'] == 'light.b' for c in hass.calls))
         plays = [c for c in hass.calls if c[1] == 'play_media']
-        self.assertEqual(plays[0][2]['media_content_id'], 'http://example.test/zone.mp3')
+        self.assertEqual(plays[0][2]['media_content_id'], 'http://ha.local:8123/haunted_house_media/thunder.wav')
         await engine.stop()
 
     async def test_intensity_caps(self):

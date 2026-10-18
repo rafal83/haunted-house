@@ -16,7 +16,7 @@ class SceneSelect(HauntedEntity, SelectEntity):
 
     def __init__(self, engine, zone):
         self.zone_id = zone["id"]
-        super().__init__(engine, f"test_scene_{self.zone_id}", f"Scène de test {zone['name']}", "mdi:theater")
+        super().__init__(engine, f"test_scene_{self.zone_id}", "Scène de test", "mdi:theater", zone)
 
     @property
     def current_option(self):

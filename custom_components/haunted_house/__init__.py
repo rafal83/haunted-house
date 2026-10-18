@@ -5,6 +5,7 @@ from homeassistant.components.http import StaticPathConfig
 from homeassistant.core import SupportsResponse
 from homeassistant.const import EVENT_HOMEASSISTANT_STOP
 from homeassistant.exceptions import HomeAssistantError
+from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.event import async_track_state_change_event
 from .const import DOMAIN, MEDIA_URL_PATH, PLATFORMS, SCENES, SERVICES
 from .engine import HauntedEngine
@@ -78,8 +79,18 @@ async def async_setup_entry(hass, entry):
 
     entry.async_on_unload(hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, shutdown))
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
+    _remove_stale_zone_devices(hass, entry, engine)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
+
+
+def _remove_stale_zone_devices(hass, entry, engine):
+    """Drop devices of zones that no longer exist."""
+    keep = {entry.entry_id, *[f"{entry.entry_id}_{zone_id}" for zone_id in engine.zones]}
+    registry = dr.async_get(hass)
+    for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
+        if not any(domain == DOMAIN and ident in keep for domain, ident in device.identifiers):
+            registry.async_remove_device(device.id)
 
 
 async def async_reload_entry(hass, entry):

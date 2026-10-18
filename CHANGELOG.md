@@ -1,5 +1,15 @@
 # Historique
 
+## 0.4.0 — 18 octobre 2026
+
+- **Terreur** : lumières qui scintillent et grésillent de façon irrégulière (chaque lampe sa séquence, 3 changements par seconde au plus), coupures noires, éclairs d'orage en rafale, flashs rouges.
+- Scènes réécrites avec montée, noir total puis choc : Bougies, Cimetière, Orage, Apparition, Maison hantée, Sons spatialisés, Poursuite, Rire. Toutes jouent maintenant un son.
+- Nouveaux sons sombres : cris, grondements, craquement de porte, tonnerre grave, pas lourds, coups, chuchotements, rire, drone, souffle de fantôme, ambiance (synthèse originale et sources CC0 créditées).
+- Quatre vidéos effrayantes originales (visage dans le couloir, caméra de surveillance infrarouge, neige TV, apparition) jouées dès qu'une TV est choisie dans la zone. Cause du « aucune vidéo » : le champ d'URL était vide.
+- Le profil **Maison hantée** est effrayant dès la première seconde (plus de montée calme). Les profils Familiale n'ont ni cris ni grondements.
+- **Plus aucune URL à saisir** : seuls les sons et vidéos fournis sont utilisés. Les anciens champs sont ignorés.
+- **Un appareil par zone** (« Haunted House NOM ») avec capteur, liste de scène de test et boutons ; les commandes globales restent sur l'appareil principal.
+
 ## 0.3.4 — 18 octobre 2026
 
 - Les volets ignorés ou non déplacés sont maintenant expliqués dans le journal (`cover_ignored`, `cover_skipped` avec la raison : classe, positionnement non pris en charge, position inconnue, délai).

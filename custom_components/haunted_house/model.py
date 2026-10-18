@@ -1,6 +1,6 @@
 """Pure configuration migration/validation helpers, independent of HA."""
 from copy import deepcopy
-from .const import DEFAULTS, ZONE_DEFAULTS, ENTITY_KEYS, INTENSITIES, SCENES, AUDIO_TAGS
+from .const import DEFAULTS, ZONE_DEFAULTS, ENTITY_KEYS, INTENSITIES, SCENES
 
 
 def normalize(options):
@@ -11,7 +11,9 @@ def normalize(options):
     zones = source.get("zones")
     if zones is None:
         zones = [{"id": "maison", "name": "Maison", **{k: source.get(k, []) for k in ENTITY_KEYS}}]
-    result["zones"] = [deepcopy(ZONE_DEFAULTS) | zone for zone in zones]
+    # Keys that are no longer supported (custom sound/video URLs) are dropped.
+    result["zones"] = [{k: v for k, v in (deepcopy(ZONE_DEFAULTS) | zone).items() if k in ZONE_DEFAULTS or k == "id"}
+                       for zone in zones]
     return result
 
 
@@ -40,17 +42,7 @@ def validate_zone(zone, other_zones):
         return {"reactive_lights": "reactive_subset"}
     if zone.get("intensity", "inherit") not in ["inherit", *INTENSITIES]:
         return {"intensity": "invalid_profile"}
-    for key in ["videos", "kids_videos", *[f"sound_{tag}" for tag in AUDIO_TAGS]]:
-        if not valid_sounds(zone.get(key, "")):
-            return {key: "invalid_sound"}
-    if not valid_sounds(zone.get("sounds", "")):
-        return {"sounds": "invalid_sound"}
     return {}
-
-
-def valid_sounds(text):
-    return all(not line.strip() or line.strip().startswith(("https://", "http://", "media-source://"))
-               for line in text.splitlines())
 
 
 def trigger_fired(old, new, entity_id):

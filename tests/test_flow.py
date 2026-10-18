@@ -61,26 +61,27 @@ class FlowTests(unittest.IsolatedAsyncioTestCase):
         zone = normalize({'lights': ['light.a']})['zones'][0]
         result = await flow.async_step_zone(zone)
         self.assertEqual(result['step_id'], 'zone_media')
-        result = await flow.async_step_zone_media({'sound_storm': 'http://example.test/thunder.wav'})
+        result = await flow.async_step_zone_media({'video_power_on': True})
         self.assertEqual(result['type'], 'create_entry')
         self.assertEqual(result['options']['zones'][0]['lights'], ['light.a'])
-        self.assertEqual(result['options']['zones'][0]['sound_storm'], 'http://example.test/thunder.wav')
+        self.assertTrue(result['options']['zones'][0]['video_power_on'])
+        self.assertNotIn('sounds', result['options'])
 
-    async def test_options_keep_media_when_devices_edited(self):
+    async def test_options_keep_tv_settings_when_devices_edited(self):
         opts = normalize({'lights': ['light.a']})
-        opts['zones'][0]['videos'] = 'http://example.test/video.mp4'
+        opts['zones'][0]['video_power_on'] = True
         engine, hass, _ = make(opts)
         flow = flow_mod.HauntedOptionsFlow()
         flow.config_entry = types.SimpleNamespace(options=opts, entry_id='test')
         flow.hass = hass
         await flow.async_step_init()
         await flow.async_step_edit_zone({'zone_id': 'maison'})
-        changed = {k: deepcopy(v) for k,v in opts['zones'][0].items() if not k.startswith('sound_') and k != 'videos'}
+        changed = {k: deepcopy(v) for k,v in opts['zones'][0].items() if k != 'video_power_on'}
         changed['name'] = 'Entrée'
         await flow.async_step_zone(changed)
         await flow.async_step_zone_media({})
         result = await flow.async_step_save()
-        self.assertEqual(result['data']['zones'][0]['videos'], 'http://example.test/video.mp4')
+        self.assertTrue(result['data']['zones'][0]['video_power_on'])
         self.assertEqual(result['data']['zones'][0]['name'], 'Entrée')
         self.assertEqual(opts['zones'][0]['name'], 'Maison')
 

@@ -1,4 +1,7 @@
-"""Rebuild original, procedural demo media. Requires Pillow and ffmpeg on the build machine only."""
+"""Rebuild the gentle children's media (chime + pumpkin video). Requires Pillow and ffmpeg on the build machine only.
+
+The scary sounds and videos come from generate_horror_audio.py, build_cc0_media.py and generate_horror_video.py.
+"""
 import math
 from pathlib import Path
 import random
@@ -30,7 +33,7 @@ def audio(kind, t, rng):
     return .1 * math.sin(t * 2 * math.pi * (95 + 15 * math.sin(t * 2))) * math.sin(math.pi * min(1, t / 2))
 
 
-for name in ['thunder', 'footsteps', 'knock', 'whisper', 'laugh', 'kids', 'drone']:
+for name in ['kids']:
     rng = random.Random(name)
     samples = []
     for i in range(SR * 2):
@@ -80,11 +83,11 @@ def frame(kind, t):
     return im
 
 
-for kind in ['apparition', 'surveillance', 'kids']:
+for kind in ['kids']:
     with tempfile.TemporaryDirectory(prefix='haunted_frames_') as tmp:
         for i in range(72):
             frame(kind, i / 12).save(Path(tmp) / f'{i:04}.png')
         subprocess.run(['ffmpeg', '-hide_banner', '-loglevel', 'error', '-y', '-framerate', '12',
                         '-i', str(Path(tmp) / '%04d.png'), '-c:v', 'libx264', '-pix_fmt', 'yuv420p',
                         '-crf', '25', '-movflags', '+faststart', str(OUT / f'{kind}.mp4')], check=True)
-print('Generated seven 2-second WAV files and three 6-second MP4 videos:', OUT)
+print('Generated the children chime and pumpkin video:', OUT)

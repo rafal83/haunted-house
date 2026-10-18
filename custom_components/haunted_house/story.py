@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 import random
 import time
 from homeassistant.helpers.storage import Store
-from .const import BUNDLED_AUDIO, ENTITY_KEYS, INTENSITIES, MEDIA_URL_PATH, SCENES
+from .const import (BUNDLED_AUDIO, BUNDLED_VIDEO, ENTITY_KEYS, HARSH_AUDIO, INTENSITIES,
+                    MEDIA_URL_PATH, SCENES)
 from .model import trigger_fired
 
 CURRENT_ZONE = ContextVar("haunted_zone", default=None)
@@ -56,7 +57,8 @@ class StoryFeatures:
         if zone.get("kids_mode") or CURRENT_SCENE.get() == "kids":
             name = "kids"
         profile = dict(INTENSITIES[name])
-        scale = {"calm": .45, "rising": .75}.get(self.phase, 1)
+        # The top profile is frightening from the first second: no soft calm/rising ramp.
+        scale = 1 if profile["fear"] >= 3 else {"calm": .45, "rising": .75}.get(self.phase, 1)
         profile["brightness"] = round(profile["brightness"] * scale)
         profile["volume"] *= scale
         return profile
@@ -223,16 +225,8 @@ class StoryFeatures:
         self.record("branch_retreat", from_zone=zone_id, zone_id=target)
         await self.effect(scare=True, zone_id=target, scene="retreat", source="departure")
 
-    def audio_urls(self, zone_id, tag):
-        zone = self.zones[zone_id]
-        if self.is_kids(zone_id) or tag == "kids":
-            text = zone["sound_kids"]  # Never fall back to a frightening bank for children.
-        else:
-            text = zone.get(f"sound_{tag}", "").strip() or zone["sounds"].strip() or self.options["sounds"]
-        return [line.strip() for line in text.splitlines() if line.strip()]
-
-    def bundled_url(self, name):
-        """URL of a sound shipped with the integration, or None when no HA base URL is available."""
+    def bundled_url(self, name, extension="wav"):
+        """URL of a media file shipped with the integration, or None when no HA base URL is available."""
         if not name:
             return None
         try:  # Imported lazily so the module stays importable outside a full HA install.
@@ -240,31 +234,38 @@ class StoryFeatures:
         except ImportError:
             return None
         try:
-            return f"{get_url(self.hass, prefer_external=False)}{MEDIA_URL_PATH}/{name}.wav"
+            return f"{get_url(self.hass, prefer_external=False)}{MEDIA_URL_PATH}/{name}.{extension}"
         except NoURLAvailableError:
             return None
+
+    def bundled_audio_url(self, tag):
+        names = BUNDLED_AUDIO.get(tag, [])
+        if self.profile.get("fear", 1) < 2:  # Family profile: no screams or growls.
+            names = [n for n in names if n not in HARSH_AUDIO] or ["whisper"]
+        return self.bundled_url(random.choice(names)) if names else None
+
+    def bundled_video_url(self, zone_id):
+        group = "kids" if self.is_kids(zone_id) else "scary" if self.profile.get("fear", 1) >= 2 else "mild"
+        return self.bundled_url(random.choice(BUNDLED_VIDEO[group]), "mp4")
 
     async def _play_audio(self, zone_id, tag, entity_id=None):
         ids = self.usable("media_players", zone_id)
         if not ids:
             return
         entity_id = entity_id or random.choice(ids)
-        urls = self.audio_urls(zone_id, tag)
         kids = self.is_kids(zone_id) or tag == "kids"
         messages = [s.strip() for s in self.options["kids_messages"].splitlines() if s.strip()]
-        tts = kids and self.options["tts_entity"] and messages
-        if not urls and not tts:
-            bundled = self.bundled_url(BUNDLED_AUDIO.get(tag))
-            urls = [bundled] if bundled else []
-        if not urls and not tts:
+        tts = kids and self.options["tts_entity"] and messages  # A configured children's voice wins over the chime.
+        url = None if tts else self.bundled_audio_url("kids" if kids else tag)
+        if not url and not tts:
             return
         self._touched_media.add(entity_id)
         await self.save()
         await self.call("media_player", "volume_set", entity_id,
                         volume_level=min(self.options["volume"], self.profile["volume"]))
-        if urls:
+        if url:
             await self.call("media_player", "play_media", entity_id,
-                            media_content_id=random.choice(urls), media_content_type="music")
+                            media_content_id=url, media_content_type="music")
         else:
             await self.call("tts", "speak", self.options["tts_entity"],
                             media_player_entity_id=entity_id, message=random.choice(messages))
@@ -285,10 +286,15 @@ class StoryFeatures:
 
     async def _video(self, zone_id):
         zone = self.zones[zone_id]
-        text = zone["kids_videos"] if self.is_kids(zone_id) else zone["videos"]
-        urls = [s.strip() for s in text.splitlines() if s.strip()]
         ids = self.usable("video_players", zone_id)
-        if not urls or not ids:
+        if not zone["video_players"]:
+            return
+        if not ids:
+            self.record("video_skipped", zone_id=zone_id, reason="no_available_player")
+            return
+        url = self.bundled_video_url(zone_id)
+        if not url:
+            self.record("video_skipped", zone_id=zone_id, reason="no_base_url")
             return
         entity_id = random.choice(ids)
         state = self.hass.states.get(entity_id)
@@ -306,7 +312,7 @@ class StoryFeatures:
             await self.pause(2)
         try:
             await self.call("media_player", "play_media", entity_id,
-                            media_content_id=random.choice(urls), media_content_type="video")
+                            media_content_id=url, media_content_type="video")
             await self.pause(6)
         finally:
             await self.call("media_player", "media_stop", entity_id)

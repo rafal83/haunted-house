@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.3.4.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.4.0.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 46 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 47 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -30,12 +30,12 @@ Le paquet s’installe via HACS (dépôt personnalisé) ou manuellement. Il n’
 ## Démarrage rapide
 
 1. Créer une zone avec une ou deux lampes, puis ajouter une enceinte.
-2. Dans le second formulaire, laisser les banques vides pour utiliser les sons inclus, ou renseigner vos propres URL.
+2. Dans le second formulaire, indiquer seulement si les TV/projecteurs peuvent être allumés. Les sons et vidéos sont fournis par l’intégration : aucune URL à saisir.
 3. Depuis **Configurer → Prévisualiser et tester une scène**, sélectionner cette zone et **Orage**. Vérifier l’aperçu puis lancer le test. Il s’arrête après 20 secondes maximum et restaure les états.
 4. Ajouter les autres pièces, puis définir **Histoire et parcours**.
 5. Activer **Mode hanté**. Utiliser le bouton **Faire circuler le fantôme** pour lancer un parcours immédiatement.
 
-Pour vos propres sons, `ADRESSE_HA` doit être remplacée par une adresse joignable depuis les enceintes et TV. Sans URL, les sons inclus utilisent l’URL interne de Home Assistant. Aucun appareil n’est sélectionné automatiquement.
+Les enceintes et TV doivent pouvoir joindre l’URL interne de Home Assistant (**Paramètres → Système → Réseau**), car les médias sont servis par l’intégration. Aucun appareil n’est sélectionné automatiquement.
 
 ## Les ajouts de la v3
 
@@ -48,7 +48,7 @@ Pour vos propres sons, `ADRESSE_HA` doit être remplacée par une adresse joigna
 | TV/projecteur | Lecture d’une apparition ou d’un faux écran de surveillance sur un lecteur vidéo compatible HA |
 | Embranchements | Poursuite si une détection arrive dans la pièce suivante ; réaction après un départ sans nouvelle détection |
 | Mode enfants | Profil et médias propres à chaque zone, couleurs douces, carillon ou phrases TTS, aucun mouvement de volet |
-| Sons inclus | Sons servis par l’intégration et utilisés quand une banque est vide, sans copie dans `www` |
+| Sons et vidéos inclus | Cris, grondements, craquements, tonnerre et vidéos effrayantes fournis par l’intégration, sans URL à renseigner |
 | Aperçu et test | Liste des appareils, test isolé d’une seule zone et restauration automatique |
 | Historique | 200 événements conservés : heures, zones, scènes, déclencheurs, interruptions et échecs d’appareils |
 
@@ -64,9 +64,10 @@ Le premier formulaire définit :
 - profil local ou héritage du profil général ; mode enfants ;
 - lampes réactives, choisies parmi les lumières de cette zone ;
 - activation des embranchements, pièce suivante et pièce de réponse après départ ;
-- sons génériques de la zone, en remplacement des sons généraux.
 
-Le second formulaire configure une banque audio par effet et les vidéos. Une URL par ligne ; un fichier est choisi aléatoirement dans la banque.
+Le second formulaire demande seulement si les TV/projecteurs de la zone peuvent être allumés. Les sons et vidéos ne se configurent pas : l’intégration joue les siens.
+
+Chaque zone devient un **appareil** Home Assistant distinct (« Haunted House NOM ») avec son capteur, sa liste de scène de test et ses boutons Surprise, Aperçu et Tester. Les commandes globales (mode hanté, arrêter et restaurer, fantôme, abandonner la restauration) restent sur l’appareil principal « Haunted House ».
 
 Dans les options, **Ajouter/Modifier/Supprimer une zone**, **Réglages généraux**, **Histoire et parcours** préparent les changements. Choisir **Enregistrer** pour les appliquer. Une session active sera arrêtée et restaurée avant rechargement. Les tests utilisent la configuration enregistrée, pas un brouillon d’options.
 
@@ -76,32 +77,34 @@ Un même identifiant piloté ne peut figurer dans deux zones, ni être à la foi
 
 | Scène | Identifiant | Effets |
 |---|---|---|
-| Bougies | `candle` | Trois variations lentes orange |
-| Cimetière | `graveyard` | Vert sombre puis bleu profond |
-| Orage | `storm` | Bleu sombre, montée blanche avec son, retour au bleu |
-| Apparition | `apparition` | Violet, apparition verte avec son, volet, accessoire et vidéo |
-| Maison hantée | `haunted` | Parcours des lumières avec son, accessoire et vidéo |
-| Sons spatialisés | `spatial` | Pas, souffle puis coups sur des enceintes successives |
-| Citrouille magique | `kids` | Orange et rose doux, médias enfants et éventuellement TTS |
-| Poursuite | `pursuit` | Lumière verte, pas, puis coups et retour violet |
-| Rire derrière vous | `retreat` | Lueur violette et banque Rire |
+| Bougies | `candle` | Flammes orange qui vacillent, extinction brusque, braise rouge, craquement ou souffle |
+| Cimetière | `graveyard` | Vert maladif qui grésille, souffle, noir total puis éclair blanc |
+| Orage | `storm` | Éclairs blancs en rafale (jusqu’à trois), coupure, tonnerre grave |
+| Apparition | `apparition` | Violet qui grésille, chuchotements, noir, flash rouge, cri, volet, accessoire et vidéo |
+| Maison hantée | `haunted` | Lumières rouges qui scintillent, grondement, noir total, flash rouge et cri, accessoire et vidéo |
+| Sons spatialisés | `spatial` | Pas, souffle puis coups sur des enceintes successives, lumière qui vacille |
+| Citrouille magique | `kids` | Orange et rose doux, carillon, vidéo de citrouille et éventuellement TTS |
+| Poursuite | `pursuit` | Lumière verte qui grésille, pas, coups, noir puis retour violet |
+| Rire derrière vous | `retreat` | Rouge qui scintille et rire |
 
-Les branches son, vidéo, accessoire et lumière sont coordonnées au niveau logiciel. Les latences propres aux appareils empêchent une synchronisation audiovisuelle à la milliseconde. Aucun stroboscope rapide n’est utilisé.
+Les branches son, vidéo, accessoire et lumière sont coordonnées au niveau logiciel. Les latences propres aux appareils empêchent une synchronisation audiovisuelle à la milliseconde. Aucun stroboscope n’est utilisé : le scintillement est irrégulier, chaque lampe suit sa propre séquence et ne change jamais plus d’environ trois fois par seconde.
 
-Les scènes se dégradent selon le matériel présent : une scène lumineuse fonctionne sans enceinte, une apparition sans volet garde ses autres effets. Les banques audio v3 permettent enfin de donner un vrai tonnerre à l’orage plutôt qu’un son générique aléatoire.
+Les scènes se dégradent selon le matériel présent : une scène lumineuse fonctionne sans enceinte, une apparition sans volet garde ses autres effets.
 
 ## Profils par pièce et enfants
 
-| Profil | Valeur | Plafond lumière | Plafond volume | Pas de volet |
-|---|---|---:|---:|---:|
-| Familiale | `family` | 90 / 255 | 20 % | ±5 points |
-| Inquiétante | `eerie` | 150 / 255 | 35 % | ±10 points |
-| Maison hantée | `haunted` | 210 / 255 | 50 % | ±15 points |
-| Enfants | `kids` | 65 / 255 | 12 % | Aucun |
+| Profil | Valeur | Plafond lumière | Plafond volume | Pas de volet | Peur |
+|---|---|---:|---:|---:|---|
+| Familiale | `family` | 90 / 255 | 20 % | ±5 points | Scintillements et coupures légers, souffles, craquements, aucun cri |
+| Inquiétante | `eerie` | 150 / 255 | 35 % | ±10 points | Cris, grondements, flashs rouges |
+| Maison hantée | `haunted` | 210 / 255 | 50 % | ±15 points | Tout, dès la première seconde (pas de montée calme) |
+| Enfants | `kids` | 65 / 255 | 12 % | Aucun | Aucune |
 
-Le volume envoyé est le minimum entre votre réglage et le plafond effectif du profil. Le mode enfants d’une zone transforme ses scènes, parcours et embranchements en scène douce. Il utilise **uniquement** `sound_kids` et `kids_videos` ; aucune reprise des banques effrayantes. Sans média enfant, la partie visuelle peut fonctionner seule.
+**Pour avoir vraiment peur** : choisir le profil **Maison hantée** dans **Réglages généraux** et monter le **volume** (le volume envoyé est plafonné à la valeur la plus basse entre ce réglage et le profil ; 0,5 ou plus pour Maison hantée). Les profils Familiale et Inquiétante gardent la montée calme du début de session.
 
-Pour les voix, renseigner une entité TTS existante dans **Histoire et parcours**, par exemple `tts.piper`, puis une phrase par ligne. Sans banque audio enfants, cette entité lit une phrase aléatoire. La voix et la disponibilité réseau dépendent de votre moteur TTS ; l’intégration ne crée pas elle-même une voix. Les phrases par défaut sont douces et modifiables.
+Le volume envoyé est le minimum entre votre réglage et le plafond effectif du profil. Le mode enfants d’une zone transforme ses scènes, parcours et embranchements en scène douce. Il utilise **uniquement** le carillon et la vidéo de citrouille inclus ; jamais les cris ni les vidéos effrayantes.
+
+Pour les voix, renseigner une entité TTS existante dans **Histoire et parcours**, par exemple `tts.piper`, puis une phrase par ligne. Quand elle est configurée, cette entité lit une phrase aléatoire à la place du carillon. La voix et la disponibilité réseau dépendent de votre moteur TTS ; l’intégration ne crée pas elle-même une voix. Les phrases par défaut sont douces et modifiables.
 
 ## Histoire, rythme et finale
 
@@ -145,34 +148,28 @@ L’intégration ignore les événements portant son propre contexte HA. Elle ne
 
 ## TV, projecteur et médias inclus
 
-**Sons inclus, sans configuration.** Les sons sont servis par l’intégration elle-même sur `/haunted_house_media/`. Si une banque audio est vide (zone, puis réglage général), le son inclus correspondant est joué : orage pour Orage, pas, coups, souffle, rire, enfants, et ambiance pour Bougies, Cimetière et Maison hantée. L’adresse de base est l’URL interne de Home Assistant (**Paramètres → Système → Réseau**) ; elle doit être joignable par les enceintes. En mode enfants, la voix TTS configurée reste prioritaire sur le carillon inclus. Les vidéos restent à activer explicitement en collant leur URL.
+Aucune URL à renseigner : les sons et vidéos sont **fournis par l’intégration** et servis par Home Assistant sur `/haunted_house_media/`. L’adresse utilisée est l’URL interne de Home Assistant (**Paramètres → Système → Réseau**) ; elle doit être joignable par les enceintes et les TV. Il n’y a pas de réglage pour les remplacer.
 
-Le lecteur sélectionné doit accepter `media_player.play_media` avec un contenu vidéo et pouvoir joindre son URL. Une TV qui expose seulement marche/arrêt ou changement de source ne suffit pas. Il n’y a pas d’intégration spécifique de protocole TV ni de contournement des limitations du lecteur.
+Chaque scène choisit au hasard parmi plusieurs variantes. Les profils Familiale n’utilisent ni cris ni grondements. En mode enfants, la voix TTS configurée reste prioritaire sur le carillon inclus.
 
-Renseigner **Vidéos inquiétantes** et **Vidéos enfants** séparément. Les scènes Apparition/Maison hantée jouent une vidéo environ six secondes, puis l’arrêtent. Une TV éteinte est ignorée sauf si **Autoriser l’allumage** est activé. Si elle a été allumée par le spectacle, elle est rééteinte lors de la restauration de session ; sa source initiale est aussi rappelée lorsqu’elle est connue. Une application ou une émission antérieure n’est pas reprise.
+**Vidéos.** Dès qu’une TV ou un projecteur est choisi dans la zone, les scènes Apparition, Maison hantée et Citrouille jouent une de leurs vidéos environ six secondes, puis l’arrêtent. Le lecteur doit accepter `media_player.play_media` avec un contenu vidéo et pouvoir joindre l’URL. Une TV qui expose seulement marche/arrêt ou changement de source ne suffit pas. Une TV éteinte est ignorée sauf si **Autoriser l’allumage** est activé. Si elle a été allumée par le spectacle, elle est rééteinte lors de la restauration de session ; sa source initiale est aussi rappelée lorsqu’elle est connue. Une application ou une émission antérieure n’est pas reprise. Quand une vidéo n’est pas jouée, le journal contient `video_skipped` avec la raison (aucun lecteur disponible, allumage non autorisé, URL de base introuvable).
 
-Le dossier `custom_components/haunted_house/media` contient :
+| Média | Fichiers | Origine |
+|---|---|---|
+| Cris | `scream`, `scream_2`, `scream_3`, `scream_4` | Synthèse originale et montages de cris de créatures CC0 |
+| Grondements | `growl`, `growl_2`, `roar`, `hit_bass` | Synthèse originale et montages CC0 |
+| Ambiances | `drone`, `ambience`, `breath`, `creak` | Synthèse originale, « Ambient horror » et « Ghost breath » (CC0) |
+| Autres sons | `thunder`, `footsteps`, `knock`, `whisper`, `laugh` | Synthèse originale |
+| Enfants | `kids.wav`, `kids.mp4` | Carillon et citrouille originaux |
+| Vidéos effrayantes | `jumpscare.mp4`, `surveillance.mp4`, `static_ghost.mp4`, `apparition.mp4` | Créations procédurales originales |
 
-| Banque / usage | URL après remplacement de `ADRESSE_HA` |
-|---|---|
-| Orage | `http://ADRESSE_HA:8123/haunted_house_media/thunder.wav` |
-| Pas | `http://ADRESSE_HA:8123/haunted_house_media/footsteps.wav` |
-| Coups | `http://ADRESSE_HA:8123/haunted_house_media/knock.wav` |
-| Souffle | `http://ADRESSE_HA:8123/haunted_house_media/whisper.wav` |
-| Rire électronique | `http://ADRESSE_HA:8123/haunted_house_media/laugh.wav` |
-| Ambiance | `http://ADRESSE_HA:8123/haunted_house_media/drone.wav` |
-| Enfants | `http://ADRESSE_HA:8123/haunted_house_media/kids.wav` |
-| Fantôme | `http://ADRESSE_HA:8123/haunted_house_media/apparition.mp4` |
-| Faux écran de surveillance | `http://ADRESSE_HA:8123/haunted_house_media/surveillance.mp4` |
-| Citrouille animée | `http://ADRESSE_HA:8123/haunted_house_media/kids.mp4` |
-
-Ce sont des démonstrations procédurales originales, pas des enregistrements de voix ou de vraies caméras. Sons de deux secondes en WAV mono ; vidéos muettes de six secondes en MP4 H.264. Le script `scripts/generate_assets.py` permet de les recréer avec Pillow et ffmpeg sur la machine de développement ; ces dépendances ne sont pas nécessaires dans HA.
+Aucune voix ni enregistrement de personne n’est utilisé, et aucun visage n’est une photographie : les visages sont des dessins générés. Les sources CC0 sont créditées dans `custom_components/haunted_house/media/CREDITS.md`. Les scripts de la machine de développement (`scripts/generate_horror_audio.py`, `build_cc0_media.py`, `generate_horror_video.py`, `generate_assets.py`) recréent les fichiers avec numpy, Pillow et ffmpeg ; ils ne sont pas nécessaires dans HA.
 
 ## Aperçu et test
 
 **Configurer → Prévisualiser et tester une scène** propose une zone et une scène, affiche la scène effective et les appareils sélectionnés, puis permet d’exécuter le test. Sans lancer le test, aucune commande n’est envoyée.
 
-Depuis la page de l’appareil **Haunted House**, sans passer par Configurer : choisir la scène dans la liste **Scène de test NOM** (Bougies, Cimetière, Orage, Apparition, Maison hantée, Sons spatialisés, Enfants, Poursuite, Retrait), puis appuyer sur **Aperçu NOM (scène choisie)** ou **Tester NOM (scène choisie)**. Par défaut la liste affiche la scène de déclenchement de la zone ; le choix est oublié au rechargement de l’intégration. Le test garde les mêmes règles : session arrêtée, 20 secondes maximum, restauration automatique. L’aperçu est disponible dans les attributs du capteur État.
+Depuis la page de l’appareil de la zone (« Haunted House NOM »), sans passer par Configurer : choisir la scène dans la liste **Scène de test** (Bougies, Cimetière, Orage, Apparition, Maison hantée, Sons spatialisés, Enfants, Poursuite, Retrait), puis appuyer sur **Aperçu (scène choisie)** ou **Tester (scène choisie)**. Par défaut la liste affiche la scène de déclenchement de la zone ; le choix est oublié au rechargement de l’intégration. Le test garde les mêmes règles : session arrêtée, 20 secondes maximum, restauration automatique. L’aperçu est disponible dans les attributs du capteur État.
 
 Le test est une session isolée, sans parcours automatique, réaction aux capteurs, progression ou autres zones. Il refuse de démarrer tant que le spectacle est actif ou qu’une restauration reste en attente. Il sauvegarde les appareils de sa zone, joue la scène pendant 20 secondes maximum puis restaure, y compris après interruption. Le bouton global d’arrêt peut l’interrompre.
 
@@ -250,9 +247,9 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-46 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+47 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
-Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les trois vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
+Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les cinq vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 
 Domaines pilotés : `light`, `cover`, `media_player`, `switch`, plus une entité `tts` explicitement configurée pour la voix. Déclencheurs : `binary_sensor`, `input_button`, `event`. La v3 n’ajoute pas de contrôle arbitraire des autres domaines.
 

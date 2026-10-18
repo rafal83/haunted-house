@@ -40,7 +40,7 @@ class DiscardButton(HauntedEntity, ButtonEntity):
 class ZoneButton(HauntedEntity, ButtonEntity):
     def __init__(self, engine, zone):
         self.zone_id = zone["id"]
-        super().__init__(engine, f"surprise_{self.zone_id}", f"Surprise {zone['name']}", "mdi:halloween")
+        super().__init__(engine, f"surprise_{self.zone_id}", "Surprise", "mdi:halloween", zone)
 
     async def async_press(self):
         await self.engine.effect(scare=True, zone_id=self.zone_id)
@@ -58,8 +58,8 @@ class TestButton(HauntedEntity, ButtonEntity):
     def __init__(self, engine, zone, preview):
         self.zone_id, self._preview = zone["id"], preview
         super().__init__(engine, f"{'preview' if preview else 'test'}_{zone['id']}",
-                         f"{'Aperçu' if preview else 'Tester'} {zone['name']} (scène choisie)",
-                         "mdi:eye" if preview else "mdi:play-circle-outline")
+                         "Aperçu (scène choisie)" if preview else "Tester (scène choisie)",
+                         "mdi:eye" if preview else "mdi:play-circle-outline", zone)
 
     async def async_press(self):
         scene = self.engine.chosen_scene(self.zone_id)

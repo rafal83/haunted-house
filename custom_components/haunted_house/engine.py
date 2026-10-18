@@ -8,6 +8,7 @@ from homeassistant.helpers.storage import Store
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.dispatcher import async_dispatcher_send
 from .const import DOMAIN, ENTITY_KEYS, INTENSITIES, SCENES
+from .horror import HorrorEffects
 from .model import normalize
 from .story import StoryFeatures, CURRENT_ZONE, CURRENT_SCENE, WALK_SOUND
 
@@ -16,7 +17,7 @@ ATTRS = ("brightness", "color_mode", "rgb_color", "rgbw_color", "rgbww_color", "
          "color_temp_kelvin", "effect", "current_position", "volume_level", "source")
 
 
-class HauntedEngine(StoryFeatures):
+class HauntedEngine(HorrorEffects, StoryFeatures):
     def __init__(self, hass, entry):
         self.hass, self.entry = hass, entry
         self.options = normalize(entry.options)
@@ -281,7 +282,7 @@ class HauntedEngine(StoryFeatures):
             if scare:
                 self._last_scare[zone_id] = now
             candidates = zone["scenes"]
-            if source == "automatic" and self.phase == "calm":
+            if source == "automatic" and self.phase == "calm" and self.profile.get("fear", 1) < 3:
                 candidates = [s for s in candidates if s in ("candle", "graveyard", "kids")] or candidates
             scene = scene or (zone["trigger_scene"] if scare else random.choice(candidates))
             self._effects[zone_id] = self.hass.async_create_background_task(
@@ -315,51 +316,13 @@ class HauntedEngine(StoryFeatures):
 
     async def _scene_body(self, zone_id, scene):
         try:
-            if scene == "candle":
-                for _ in range(3):
-                    await self._lights(zone_id, (255, 65, 0), random.uniform(.25, .55))
-                    await self.pause(self.profile["pulse"])
-            elif scene == "graveyard":
-                await self._lights(zone_id, (0, 100, 60), .25)
-                await self.pause(2)
-                await self._lights(zone_id, (15, 25, 160), .20)
-            elif scene == "storm":
-                await self._lights(zone_id, (20, 30, 100), .12)
-                await self.pause(1)
-                await self._parallel(self._lights(zone_id, (210, 225, 255), 1), self._sound(zone_id))
-                await self.pause(self.profile["pulse"])
-                await self._lights(zone_id, (20, 30, 100), .15)
-            elif scene == "apparition":
-                await self._lights(zone_id, (90, 0, 150), .15)
-                await self.pause(1)
-                await self._parallel(self._lights(zone_id, (0, 160, 75), .65),
-                                     self._sound(zone_id), self._cover(zone_id), self._prop(zone_id), self._video(zone_id))
-                await self._lights(zone_id, (90, 0, 150), .20)
-            elif scene == "haunted":
-                await self._parallel(self._sweep(zone_id), self._sound(zone_id), self._prop(zone_id), self._video(zone_id))
-            elif scene == "spatial":
-                await self._parallel(self._lights(zone_id, (70, 0, 100), .25), self._spatial(zone_id))
-            elif scene == "kids":
+            if scene == "kids":
                 await self._lights(zone_id, (255, 100, 10), .5)
                 await self._parallel(self._play_audio(zone_id, "kids"), self._video(zone_id))
                 await self.pause(2)
                 await self._lights(zone_id, (180, 30, 100), .4)
-            elif scene == "walk_step":
-                await self._lights(zone_id, (20, 130, 80), .5)
-                await self._play_audio(zone_id, WALK_SOUND.get())
-                await self.pause(3)
-                for entity_id in self.usable("media_players", zone_id):
-                    if entity_id in self._touched_media:
-                        await self.call("media_player", "media_stop", entity_id)
-                await self._lights(zone_id, (30, 0, 90), .1)
-            elif scene == "pursuit":
-                await self._lights(zone_id, (0, 140, 60), .6)
-                await self._play_audio(zone_id, "footsteps")
-                await self.pause(2)
-                await self._play_audio(zone_id, "knock")
-                await self._lights(zone_id, (80, 0, 140), .25)
-            elif scene == "retreat":
-                await self._parallel(self._lights(zone_id, (90, 0, 140), .25), self._play_audio(zone_id, "laugh"))
+            else:
+                await self._scare_scene(zone_id, scene)
         except asyncio.CancelledError:
             raise
 
@@ -372,11 +335,15 @@ class HauntedEngine(StoryFeatures):
             for coro in coros:
                 group.create_task(coro)
 
-    async def _light(self, entity_id, color, level):
+    async def _light(self, entity_id, color, level, transition=1):
+        """Set a light; level 0 turns it off. transition=0 is instant (flicker, flashes)."""
         if not self.running or entity_id not in self.snapshot:
             return
         state = self.hass.states.get(entity_id)
         if not state or state.state in ("unknown", "unavailable"):
+            return
+        if level <= 0:
+            await self.call("light", "turn_off", entity_id)
             return
         attrs = state.attributes
         modes = set(attrs.get("supported_color_modes", []))
@@ -386,11 +353,11 @@ class HauntedEngine(StoryFeatures):
         if modes & {"rgb", "rgbw", "rgbww", "xy", "hs"}:
             data["rgb_color"] = list(color)
         if attrs.get("supported_features", 0) & 32:
-            data["transition"] = 1
+            data["transition"] = transition
         await self.call("light", "turn_on", entity_id, **data)
 
-    async def _lights(self, zone_id, color, level):
-        await asyncio.gather(*(self._light(e, color, level) for e in self.usable("lights", zone_id)))
+    async def _lights(self, zone_id, color, level, transition=1):
+        await asyncio.gather(*(self._light(e, color, level, transition) for e in self.usable("lights", zone_id)))
 
     async def _sweep(self, zone_id):
         for entity_id in self.usable("lights", zone_id):

@@ -7,7 +7,6 @@
         "description": "Les profils limitent le volume et la luminosité. Aucun appareil n’est sélectionné automatiquement.",
         "data": {
           "intensity": "Intensité",
-          "sounds": "URLs audio par défaut, une par ligne",
           "volume": "Volume maximal (0–1)",
           "interval": "Intervalle moyen entre scènes (secondes)",
           "duration": "Durée de session (minutes)",
@@ -17,7 +16,7 @@
       },
       "zone": {
         "title": "Configurer une zone",
-        "description": "Chaque appareil piloté appartient à une seule zone. Les prises sont activées 2 secondes. Les déclencheurs ne fonctionnent que pendant une session active. Le formulaire suivant configure les banques de sons et les vidéos.",
+        "description": "Chaque appareil piloté appartient à une seule zone. Les prises sont activées 2 secondes. Les déclencheurs ne fonctionnent que pendant une session active. Le formulaire suivant concerne les TV.",
         "data": {
           "name": "Nom de la zone",
           "lights": "Lumières",
@@ -27,7 +26,6 @@
           "triggers": "Déclencheurs : présence, ouverture, bouton, événement",
           "scenes": "Scènes automatiques autorisées",
           "trigger_scene": "Scène sur déclenchement",
-          "sounds": "URLs audio de la zone (vide = sons par défaut)",
           "video_players": "TV et projecteurs (lecteurs média)",
           "intensity": "Profil de la zone",
           "kids_mode": "Mode enfants de cette zone",
@@ -38,28 +36,15 @@
         }
       },
       "zone_media": {
-        "title": "Sons et vidéos",
-        "description": "Une URL par ligne. Une banque vide utilise les sons généraux, sauf pour les enfants. Aucune vidéo effrayante n’est utilisée en mode enfants.",
+        "title": "Télévision",
+        "description": "Facultatif. Haunted House joue ses propres vidéos effrayantes sur les TV/projecteurs choisis pour cette zone. Le mode enfants ne joue qu’une douce vidéo de citrouille.",
         "data": {
-          "sound_candle": "Bougies — URLs audio",
-          "sound_graveyard": "Cimetière — URLs audio",
-          "sound_storm": "Orage — URLs audio",
-          "sound_apparition": "Apparition — URLs audio",
-          "sound_haunted": "Maison hantée — URLs audio",
-          "sound_footsteps": "Pas — URLs audio",
-          "sound_whisper": "Chuchotements / souffle — URLs audio",
-          "sound_knock": "Coups — URLs audio",
-          "sound_laugh": "Rire — URLs audio",
-          "sound_kids": "Enfants — URLs audio",
-          "videos": "Vidéos inquiétantes — URLs",
-          "kids_videos": "Vidéos enfants — URLs",
           "video_power_on": "Autoriser l’allumage des TV/projecteurs éteints"
         }
       }
     },
     "error": {
       "unsafe_cover": "Les portes, portails et garages sont exclus.",
-      "invalid_sound": "Utilisez une URL http(s) ou media-source:// par ligne.",
       "empty_name": "Indiquez un nom.",
       "empty_zone": "Choisissez au moins un appareil.",
       "duplicate_entity": "Cette entité appartient déjà à une autre zone ou est sélectionnée deux fois.",
@@ -96,7 +81,6 @@
         "description": "Les profils limitent le volume et la luminosité. Aucun appareil n’est sélectionné automatiquement.",
         "data": {
           "intensity": "Intensité",
-          "sounds": "URLs audio par défaut, une par ligne",
           "volume": "Volume maximal (0–1)",
           "interval": "Intervalle moyen entre scènes (secondes)",
           "duration": "Durée de session (minutes)",
@@ -106,7 +90,7 @@
       },
       "zone": {
         "title": "Configurer une zone",
-        "description": "Chaque appareil piloté appartient à une seule zone. Les prises sont activées 2 secondes. Les déclencheurs ne fonctionnent que pendant une session active. Le formulaire suivant configure les banques de sons et les vidéos.",
+        "description": "Chaque appareil piloté appartient à une seule zone. Les prises sont activées 2 secondes. Les déclencheurs ne fonctionnent que pendant une session active. Le formulaire suivant concerne les TV.",
         "data": {
           "name": "Nom de la zone",
           "lights": "Lumières",
@@ -116,7 +100,6 @@
           "triggers": "Déclencheurs : présence, ouverture, bouton, événement",
           "scenes": "Scènes automatiques autorisées",
           "trigger_scene": "Scène sur déclenchement",
-          "sounds": "URLs audio de la zone (vide = sons par défaut)",
           "video_players": "TV et projecteurs (lecteurs média)",
           "intensity": "Profil de la zone",
           "kids_mode": "Mode enfants de cette zone",
@@ -142,21 +125,9 @@
         "title": "Enregistrer"
       },
       "zone_media": {
-        "title": "Sons et vidéos",
-        "description": "Une URL par ligne. Une banque vide utilise les sons généraux, sauf pour les enfants. Aucune vidéo effrayante n’est utilisée en mode enfants.",
+        "title": "Télévision",
+        "description": "Facultatif. Haunted House joue ses propres vidéos effrayantes sur les TV/projecteurs choisis pour cette zone. Le mode enfants ne joue qu’une douce vidéo de citrouille.",
         "data": {
-          "sound_candle": "Bougies — URLs audio",
-          "sound_graveyard": "Cimetière — URLs audio",
-          "sound_storm": "Orage — URLs audio",
-          "sound_apparition": "Apparition — URLs audio",
-          "sound_haunted": "Maison hantée — URLs audio",
-          "sound_footsteps": "Pas — URLs audio",
-          "sound_whisper": "Chuchotements / souffle — URLs audio",
-          "sound_knock": "Coups — URLs audio",
-          "sound_laugh": "Rire — URLs audio",
-          "sound_kids": "Enfants — URLs audio",
-          "videos": "Vidéos inquiétantes — URLs",
-          "kids_videos": "Vidéos enfants — URLs",
           "video_power_on": "Autoriser l’allumage des TV/projecteurs éteints"
         }
       },
@@ -194,7 +165,6 @@
     },
     "error": {
       "unsafe_cover": "Les portes, portails et garages sont exclus.",
-      "invalid_sound": "Utilisez une URL http(s) ou media-source:// par ligne.",
       "empty_name": "Indiquez un nom.",
       "empty_zone": "Choisissez au moins un appareil.",
       "duplicate_entity": "Cette entité appartient déjà à une autre zone ou est sélectionnée deux fois.",

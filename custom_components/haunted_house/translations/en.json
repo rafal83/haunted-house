@@ -7,7 +7,6 @@
         "description": "Profiles cap volume and brightness. No devices are selected automatically.",
         "data": {
           "intensity": "Intensity",
-          "sounds": "Default audio URLs, one per line",
           "volume": "Maximum volume (0–1)",
           "interval": "Average scene interval (seconds)",
           "duration": "Session duration (minutes)",
@@ -17,7 +16,7 @@
       },
       "zone": {
         "title": "Configure a zone",
-        "description": "Each controlled entity belongs to one zone. Props activate for 2 seconds. Triggers only run during an active session.The next step configures audio banks and videos.",
+        "description": "Each controlled entity belongs to one zone. Props activate for 2 seconds. Triggers only run during an active session. The next step is about TVs.",
         "data": {
           "name": "Zone name",
           "lights": "Lights",
@@ -27,7 +26,6 @@
           "triggers": "Triggers: presence, opening, button, event",
           "scenes": "Allowed automatic scenes",
           "trigger_scene": "Scene on trigger",
-          "sounds": "Zone audio URLs (empty = defaults)",
           "video_players": "TV/projector media players",
           "intensity": "Zone profile",
           "kids_mode": "Children mode for this zone",
@@ -38,28 +36,15 @@
         }
       },
       "zone_media": {
-        "title": "Audio and video",
-        "description": "One URL per line. Empty banks use generic audio, except for children. Children mode never uses spooky videos.",
+        "title": "Television",
+        "description": "Optional. Haunted House plays its own scary videos on the TVs/projectors selected for this zone. Children mode only plays a gentle pumpkin video.",
         "data": {
-          "sound_candle": "Candles — audio URLs",
-          "sound_graveyard": "Graveyard — audio URLs",
-          "sound_storm": "Storm — audio URLs",
-          "sound_apparition": "Apparition — audio URLs",
-          "sound_haunted": "Haunted house — audio URLs",
-          "sound_footsteps": "Footsteps — audio URLs",
-          "sound_whisper": "Whispers / breath — audio URLs",
-          "sound_knock": "Knocks — audio URLs",
-          "sound_laugh": "Laugh — audio URLs",
-          "sound_kids": "Children — audio URLs",
-          "videos": "Spooky video URLs",
-          "kids_videos": "Children video URLs",
           "video_power_on": "Allow turning on TVs/projectors"
         }
       }
     },
     "error": {
       "unsafe_cover": "Doors, gates and garages are excluded.",
-      "invalid_sound": "Use one http(s) or media-source:// URL per line.",
       "empty_name": "Enter a name.",
       "empty_zone": "Choose at least one device.",
       "duplicate_entity": "An entity is duplicated or belongs to another zone.",
@@ -96,7 +81,6 @@
         "description": "Profiles cap volume and brightness. No devices are selected automatically.",
         "data": {
           "intensity": "Intensity",
-          "sounds": "Default audio URLs, one per line",
           "volume": "Maximum volume (0–1)",
           "interval": "Average scene interval (seconds)",
           "duration": "Session duration (minutes)",
@@ -106,7 +90,7 @@
       },
       "zone": {
         "title": "Configure a zone",
-        "description": "Each controlled entity belongs to one zone. Props activate for 2 seconds. Triggers only run during an active session.The next step configures audio banks and videos.",
+        "description": "Each controlled entity belongs to one zone. Props activate for 2 seconds. Triggers only run during an active session. The next step is about TVs.",
         "data": {
           "name": "Zone name",
           "lights": "Lights",
@@ -116,7 +100,6 @@
           "triggers": "Triggers: presence, opening, button, event",
           "scenes": "Allowed automatic scenes",
           "trigger_scene": "Scene on trigger",
-          "sounds": "Zone audio URLs (empty = defaults)",
           "video_players": "TV/projector media players",
           "intensity": "Zone profile",
           "kids_mode": "Children mode for this zone",
@@ -142,21 +125,9 @@
         "title": "Save"
       },
       "zone_media": {
-        "title": "Audio and video",
-        "description": "One URL per line. Empty banks use generic audio, except for children. Children mode never uses spooky videos.",
+        "title": "Television",
+        "description": "Optional. Haunted House plays its own scary videos on the TVs/projectors selected for this zone. Children mode only plays a gentle pumpkin video.",
         "data": {
-          "sound_candle": "Candles — audio URLs",
-          "sound_graveyard": "Graveyard — audio URLs",
-          "sound_storm": "Storm — audio URLs",
-          "sound_apparition": "Apparition — audio URLs",
-          "sound_haunted": "Haunted house — audio URLs",
-          "sound_footsteps": "Footsteps — audio URLs",
-          "sound_whisper": "Whispers / breath — audio URLs",
-          "sound_knock": "Knocks — audio URLs",
-          "sound_laugh": "Laugh — audio URLs",
-          "sound_kids": "Children — audio URLs",
-          "videos": "Spooky video URLs",
-          "kids_videos": "Children video URLs",
           "video_power_on": "Allow turning on TVs/projectors"
         }
       },
@@ -194,7 +165,6 @@
     },
     "error": {
       "unsafe_cover": "Doors, gates and garages are excluded.",
-      "invalid_sound": "Use one http(s) or media-source:// URL per line.",
       "empty_name": "Enter a name.",
       "empty_zone": "Choose at least one device.",
       "duplicate_entity": "An entity is duplicated or belongs to another zone.",

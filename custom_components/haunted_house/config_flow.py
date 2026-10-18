@@ -5,8 +5,8 @@ import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.helpers import selector, entity_registry as er
-from .const import DOMAIN, DEFAULTS, ENTITY_KEYS, ZONE_DEFAULTS, SCENES, INTENSITIES, AUDIO_TAGS
-from .model import normalize, validate_zone, valid_sounds
+from .const import DOMAIN, DEFAULTS, ENTITY_KEYS, ZONE_DEFAULTS, SCENES, INTENSITIES
+from .model import normalize, validate_zone
 
 
 def choose(options, multiple=False, translation_key=None):
@@ -18,8 +18,7 @@ def choose(options, multiple=False, translation_key=None):
 
 def global_schema(values):
     v = DEFAULTS | values
-    fields = {vol.Required("intensity", default=v["intensity"]): choose(list(INTENSITIES), translation_key="intensities"),
-              vol.Optional("sounds", default=v["sounds"]): selector.TextSelector(selector.TextSelectorConfig(multiline=True))}
+    fields = {vol.Required("intensity", default=v["intensity"]): choose(list(INTENSITIES), translation_key="intensities")}
     for key, low, high, step in (("volume", 0, 1, .05), ("interval", 8, 120, 1),
                                 ("duration", 1, 180, 1), ("cover_cooldown", 120, 1800, 1),
                                 ("trigger_cooldown", 10, 300, 1)):
@@ -38,7 +37,6 @@ def zone_schema(values, zones=None):
         selector.EntitySelectorConfig(domain=["binary_sensor", "input_button", "event"], multiple=True))
     fields[vol.Required("scenes", default=v["scenes"])] = choose(SCENES, True, "scenes")
     fields[vol.Required("trigger_scene", default=v["trigger_scene"])] = choose(SCENES, translation_key="scenes")
-    fields[vol.Optional("sounds", default=v["sounds"])] = selector.TextSelector(selector.TextSelectorConfig(multiline=True))
     fields[vol.Required("intensity", default=v["intensity"])] = choose(["inherit", *INTENSITIES], translation_key="intensities")
     fields[vol.Required("kids_mode", default=v["kids_mode"])] = selector.BooleanSelector()
     fields[vol.Optional("reactive_lights", default=v["reactive_lights"])] = selector.EntitySelector(
@@ -51,11 +49,7 @@ def zone_schema(values, zones=None):
 
 
 def media_schema(values):
-    fields = {}
-    for key in [*[f"sound_{tag}" for tag in AUDIO_TAGS], "videos", "kids_videos"]:
-        fields[vol.Optional(key, default=values.get(key, ""))] = selector.TextSelector(selector.TextSelectorConfig(multiline=True))
-    fields[vol.Required("video_power_on", default=values.get("video_power_on", False))] = selector.BooleanSelector()
-    return vol.Schema(fields)
+    return vol.Schema({vol.Required("video_power_on", default=values.get("video_power_on", False)): selector.BooleanSelector()})
 
 
 def story_schema(values, zones):
@@ -97,10 +91,8 @@ class HauntedHouseFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self._abort_if_unique_id_configured()
         errors = {}
         if user_input is not None:
-            if valid_sounds(user_input.get("sounds", "")):
-                self._settings = user_input
-                return await self.async_step_zone()
-            errors["sounds"] = "invalid_sound"
+            self._settings = user_input
+            return await self.async_step_zone()
         return self.async_show_form(step_id="user", data_schema=global_schema(user_input or {}), errors=errors)
 
     async def async_step_zone(self, user_input=None):
@@ -138,10 +130,8 @@ class HauntedOptionsFlow(config_entries.OptionsFlow):
     async def async_step_settings(self, user_input=None):
         errors = {}
         if user_input is not None:
-            if valid_sounds(user_input.get("sounds", "")):
-                self._draft.update(user_input)
-                return await self.async_step_init()
-            errors["sounds"] = "invalid_sound"
+            self._draft.update(user_input)
+            return await self.async_step_init()
         return self.async_show_form(step_id="settings", errors=errors,
                                    data_schema=global_schema(user_input if user_input is not None else self._draft))
 

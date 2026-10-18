@@ -3,7 +3,6 @@ import asyncio
 from copy import deepcopy
 import time
 import types
-import sys
 import unittest
 from test_engine import make, State, complete
 from haunted_house_test.model import normalize, validate_zone
@@ -15,7 +14,6 @@ def two_zones():
     opts['zones'][0]['triggers'] = ['binary_sensor.entry']
     opts['zones'][0]['branch_enabled'] = True
     opts['zones'][0]['next_zone'] = 'salon'
-    opts['zones'][0]['sound_footsteps'] = 'http://example.test/steps.wav'
     opts['zones'].append(normalize({'lights': ['light.b']})['zones'][0] | {'id': 'salon', 'name': 'Salon', 'triggers': ['binary_sensor.salon']})
     return opts
 
@@ -52,15 +50,16 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(CURRENT_SCENE.get(), 'haunted')
         await engine.stop()
 
-    async def test_children_never_fall_back_to_scary_audio_or_video(self):
-        opts = normalize({'lights': ['light.a'], 'media_players': ['media_player.a'], 'sounds': 'http://example.test/scary.wav'})
-        opts['zones'][0].update(kids_mode=True, videos='http://example.test/scary.mp4', video_players=['media_player.tv'])
+    async def test_children_only_get_the_gentle_chime_and_pumpkin(self):
+        opts = normalize({'lights': ['light.a'], 'media_players': ['media_player.a']})
+        opts['zones'][0].update(kids_mode=True, video_players=['media_player.tv'], video_power_on=True)
         engine, hass, states = make(opts)
         states['media_player.tv'] = State('idle')
         await engine.start()
         await engine.effect(scene='apparition')
         await complete(engine)
-        self.assertFalse(any(c[1] == 'play_media' for c in hass.calls))
+        played = [c[2]['media_content_id'] for c in hass.calls if c[1] == 'play_media']
+        self.assertEqual(sorted(p.rsplit('/', 1)[1] for p in played), ['kids.mp4', 'kids.wav'])
         self.assertFalse(any(c[0] == 'cover' for c in hass.calls))
         await engine.stop()
 
@@ -76,40 +75,36 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(all(c[2]['volume_level'] <= .12 for c in hass.calls if c[1] == 'volume_set'))
         await engine.stop()
 
-    async def test_scene_sound_bank_wins(self):
-        opts = normalize({'media_players': ['media_player.a'], 'sounds': 'http://example.test/default.wav'})
-        opts['zones'][0]['sound_storm'] = 'http://example.test/thunder.wav'
+    async def test_scene_uses_its_bundled_sound(self):
+        opts = normalize({'media_players': ['media_player.a']})
         engine, hass, states = make(opts)
         await engine.start()
         await engine.effect(scene='storm')
         await complete(engine)
-        self.assertEqual([c[2]['media_content_id'] for c in hass.calls if c[1] == 'play_media'], ['http://example.test/thunder.wav'])
+        self.assertEqual([c[2]['media_content_id'] for c in hass.calls if c[1] == 'play_media'],
+                         ['http://ha.local:8123/haunted_house_media/thunder.wav'])
         await engine.stop()
 
-    async def test_empty_bank_falls_back_to_bundled_sound(self):
-        network = types.ModuleType('homeassistant.helpers.network')
-        network.NoURLAvailableError = type('NoURLAvailableError', (Exception,), {})
-        network.get_url = lambda hass, prefer_external=False: 'http://ha.local:8123'
-        sys.modules['homeassistant.helpers.network'] = network
-        try:
-            opts = normalize({'media_players': ['media_player.a']})
-            opts['tts_entity'] = 'tts.piper'
-            opts['zones'].append(normalize({'media_players': ['media_player.b']})['zones'][0] | {'id': 'kids', 'name': 'Kids', 'kids_mode': True})
+    async def test_screams_only_from_the_frightening_profiles(self):
+        for intensity, harsh in (('family', False), ('haunted', True)):
+            opts = normalize({'media_players': ['media_player.a'], 'intensity': intensity})
             engine, hass, states = make(opts)
-            states['media_player.b'] = State('idle', volume_level=.4)
             await engine.start()
-            await engine.effect(zone_id='maison', scene='storm')
-            await complete(engine)
-            urls = [c[2]['media_content_id'] for c in hass.calls if c[1] == 'play_media']
-            self.assertEqual(urls, ['http://ha.local:8123/haunted_house_media/thunder.wav'])
-            hass.calls.clear()
-            await engine.effect(zone_id='kids', scene='kids')
-            await complete(engine, 'kids')
-            self.assertTrue(any(c[0] == 'tts' for c in hass.calls))  # TTS keeps priority over the bundled chime
-            self.assertFalse(any(c[1] == 'play_media' for c in hass.calls))
+            names = {engine.bundled_audio_url('scream').rsplit('/', 1)[1] for _ in range(40)}
+            self.assertEqual(any(n.startswith('scream') for n in names), harsh)
             await engine.stop()
-        finally:
-            del sys.modules['homeassistant.helpers.network']
+
+    async def test_kids_tts_beats_the_bundled_chime(self):
+        opts = normalize({'media_players': ['media_player.a']})
+        opts['tts_entity'] = 'tts.piper'
+        opts['zones'][0]['kids_mode'] = True
+        engine, hass, states = make(opts)
+        await engine.start()
+        await engine.effect(zone_id='maison', scene='kids')
+        await complete(engine)
+        self.assertTrue(any(c[0] == 'tts' for c in hass.calls))
+        self.assertFalse(any(c[1] == 'play_media' for c in hass.calls))
+        await engine.stop()
 
     async def test_none_attributes_are_not_restored_and_discard_unblocks(self):
         engine, hass, states = make({'lights': ['light.a'], 'media_players': ['media_player.a']})
@@ -240,7 +235,7 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
 
     async def test_video_power_and_source_restoration(self):
         opts = normalize({'lights': ['light.a']})
-        opts['zones'][0].update(video_players=['media_player.tv'], videos='http://example.test/ghost.mp4', video_power_on=True)
+        opts['zones'][0].update(video_players=['media_player.tv'], video_power_on=True)
         engine, hass, states = make(opts)
         states['media_player.tv'] = State('off', source='HDMI 1', volume_level=.3)
         await engine.start()
