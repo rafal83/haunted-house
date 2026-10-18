@@ -1,5 +1,10 @@
 # Historique
 
+## 0.6.1 — 18 octobre 2026
+
+- **Les vidéos ont maintenant du son** : bande son synchronisée avec l'image (silence pendant le noir, cri au moment où le visage surgit, parasites sur les glitchs). Le son sort par la TV.
+- Le profil Familiale utilise des versions douces (`surveillance_soft`, `apparition_soft`) : même image, sans cri.
+
 ## 0.6.0 — 18 octobre 2026
 
 - **La vidéo n'est plus coupée trop tôt** : l'intégration attend que la TV démarre la lecture (chargement de 2 à 4 secondes), laisse le clip se terminer, puis l'arrête. Elle ne coupait qu'après 6 secondes, avant la fin des clips de 7 à 8 secondes.

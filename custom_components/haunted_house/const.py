@@ -47,7 +47,7 @@ BUNDLED_AUDIO = {
 }
 HARSH_AUDIO = {"scream", "scream_2", "scream_3", "scream_4", "roar", "growl", "growl_2", "hit_bass"}
 BUNDLED_VIDEO = {"scary": ["jumpscare", "surveillance", "static_ghost", "apparition"],
-                 "mild": ["apparition", "surveillance"], "kids": ["kids"]}
+                 "mild": ["apparition_soft", "surveillance_soft"], "kids": ["kids"]}
 
 SCENE_LABELS = {"candle": "Bougies", "graveyard": "Cimetière", "storm": "Orage", "apparition": "Apparition",
                 "haunted": "Maison hantée", "spatial": "Sons spatialisés", "kids": "Citrouille magique",
@@ -56,5 +56,6 @@ SCENE_LABELS = {"candle": "Bougies", "graveyard": "Cimetière", "storm": "Orage"
                 "screen": "Écran hanté"}
 
 # Length in seconds of each bundled video, so playback is only stopped once the clip has finished.
-VIDEO_SECONDS = {"jumpscare": 8, "surveillance": 8, "static_ghost": 7, "apparition": 8, "kids": 6}
+VIDEO_SECONDS = {"jumpscare": 8, "surveillance": 8, "static_ghost": 7, "apparition": 8, "kids": 6,
+                 "surveillance_soft": 8, "apparition_soft": 8}
 POWER_DOMAINS = ("media_player", "switch", "remote")

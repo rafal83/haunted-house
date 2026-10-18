@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.6.0.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.6.1.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 61 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 62 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -187,9 +187,10 @@ Chaque scène choisit au hasard parmi plusieurs variantes. Les profils Familiale
 | Ambiances | `drone`, `ambience`, `breath`, `creak` | Synthèse originale, « Ambient horror » et « Ghost breath » (CC0) |
 | Autres sons | `thunder`, `footsteps`, `knock`, `whisper`, `laugh` | Synthèse originale |
 | Enfants | `kids.wav`, `kids.mp4` | Carillon et citrouille originaux |
-| Vidéos effrayantes | `jumpscare.mp4`, `surveillance.mp4`, `static_ghost.mp4`, `apparition.mp4` | Créations procédurales originales |
+| Vidéos effrayantes (avec leur bande son : cri au moment du choc, parasites sur les glitchs) | `jumpscare.mp4`, `surveillance.mp4`, `static_ghost.mp4`, `apparition.mp4` | Créations procédurales originales |
+| Vidéos douces du profil Familiale (même image, sans cri) | `surveillance_soft.mp4`, `apparition_soft.mp4` | Idem |
 
-Aucune voix ni enregistrement de personne n’est utilisé, et aucun visage n’est une photographie : les visages sont des dessins générés. Les sources CC0 sont créditées dans `custom_components/haunted_house/media/CREDITS.md`. Les scripts de la machine de développement (`scripts/generate_horror_audio.py`, `build_cc0_media.py`, `generate_horror_video.py`, `generate_assets.py`) recréent les fichiers avec numpy, Pillow et ffmpeg ; ils ne sont pas nécessaires dans HA.
+Le son des vidéos sort par la TV, à son volume : les clips ont un choc sonore, donc régler le volume de la TV en conséquence. Aucune voix ni enregistrement de personne n’est utilisé, et aucun visage n’est une photographie : les visages sont des dessins générés. Les sources CC0 sont créditées dans `custom_components/haunted_house/media/CREDITS.md`. Les scripts de la machine de développement (`scripts/generate_horror_audio.py`, `build_cc0_media.py`, `generate_horror_video.py`, `generate_assets.py`) recréent les fichiers avec numpy, Pillow et ffmpeg ; ils ne sont pas nécessaires dans HA.
 
 ## Aperçu et test
 
@@ -273,7 +274,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-61 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+62 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les cinq vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

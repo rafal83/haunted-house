@@ -16,4 +16,4 @@ Les montages (réverbération, mélange, ralentissement, découpe) sont faits pa
 ## Créations originales (licence MIT du projet)
 
 - Sons : `scream`, `growl`, `creak`, `thunder`, `footsteps`, `knock`, `whisper`, `laugh`, `drone` (`scripts/generate_horror_audio.py`), `kids.wav`.
-- Vidéos : `jumpscare`, `surveillance`, `static_ghost`, `apparition` (`scripts/generate_horror_video.py`), `kids.mp4`.
+- Vidéos : `jumpscare`, `surveillance`, `static_ghost`, `apparition` (`scripts/generate_horror_video.py`), `kids.mp4` ; leurs bandes son (`scripts/add_video_audio.py`) sont mixées à partir des sons ci-dessus.

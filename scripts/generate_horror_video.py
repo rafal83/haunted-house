@@ -3,6 +3,7 @@
 Build machine only: numpy, Pillow and ffmpeg (a copy ships with the imageio-ffmpeg wheel).
 All imagery is procedural. Faces are drawn shapes, not photographs of anyone.
 Usage: python generate_horror_video.py [name ...]   (default: all)
+The pictures are silent: run add_video_audio.py afterwards to add the soundtracks.
 """
 from pathlib import Path
 import shutil

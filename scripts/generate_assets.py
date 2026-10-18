@@ -1,6 +1,6 @@
 """Rebuild the gentle children's media (chime + pumpkin video). Requires Pillow and ffmpeg on the build machine only.
 
-The scary sounds and videos come from generate_horror_audio.py, build_cc0_media.py and generate_horror_video.py.
+The soundtrack is added afterwards by add_video_audio.py. The scary sounds and videos come from generate_horror_audio.py, build_cc0_media.py and generate_horror_video.py.
 """
 import math
 from pathlib import Path

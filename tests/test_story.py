@@ -341,6 +341,16 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertFalse([c for c in hass.calls if c[2]['entity_id'] in ('media_player.atv', 'media_player.cast')])
         await engine.stop()
 
+    async def test_family_profile_gets_the_soft_videos_and_haunted_the_scary_ones(self):
+        for intensity, soft in (('family', True), ('haunted', False)):
+            opts = normalize({'lights': ['light.a'], 'intensity': intensity})
+            engine, hass, states = make(opts)
+            await engine.start()
+            names = {engine.bundled_video_url('maison').rsplit('/', 1)[1] for _ in range(40)}
+            self.assertEqual(all('_soft' in n for n in names), soft)
+            self.assertEqual(any(n.startswith('jumpscare') for n in names), not soft)
+            await engine.stop()
+
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
         opts['ghost_route'] = ['salon', 'maison']
