@@ -306,32 +306,46 @@ class StoryFeatures:
             self.record("video_skipped", zone_id=zone_id, entity_id=entity_id, reason="power_on_disabled")
             return
         was_touched, was_video = entity_id in self._touched_media, entity_id in self._video_media
+        powered = state.state == "off"
         self._touched_media.add(entity_id)
         self._video_media.add(entity_id)
-        if state.state == "off":
+        if powered:
             self._powered_media.add(entity_id)
         await self.save()
-        if state.state == "off":
-            if not await self.call("media_player", "turn_on", entity_id):
-                return
-            await self.pause(2)
-        played = False
-        for media_type in dict.fromkeys([self._video_type.get(entity_id, "video/mp4"), "video/mp4", "video"]):
-            if await self.call("media_player", "play_media", entity_id,
-                               media_content_id=url, media_content_type=media_type):
-                self._video_type[entity_id] = media_type
-                played = True
-                break
-        if not played:
-            # e.g. Android TV Remote only launches apps/URLs. Do not stop or restore a player that played nothing.
-            self._video_rejected.add(entity_id)
-            if not was_touched:
-                self._touched_media.discard(entity_id)
-            if not was_video:
-                self._video_media.discard(entity_id)
-            self.record("video_skipped", zone_id=zone_id, entity_id=entity_id, reason="player_refused_video")
+        if powered and not await self.call("media_player", "turn_on", entity_id):
+            self._powered_media.discard(entity_id)
             return
         try:
-            await self.pause(6)
+            if powered:
+                await self.pause(2)
+            played = False
+            for media_type in dict.fromkeys([self._video_type.get(entity_id, "video/mp4"), "video/mp4", "video"]):
+                if await self.call("media_player", "play_media", entity_id,
+                                   media_content_id=url, media_content_type=media_type):
+                    self._video_type[entity_id] = media_type
+                    played = True
+                    break
+            if not played:
+                # e.g. Android TV Remote only launches apps/URLs. Do not stop a player that played nothing.
+                self._video_rejected.add(entity_id)
+                if not was_touched:
+                    self._touched_media.discard(entity_id)
+                if not was_video:
+                    self._video_media.discard(entity_id)
+                self.record("video_skipped", zone_id=zone_id, entity_id=entity_id, reason="player_refused_video")
+                return
+            try:
+                await self.pause(6)
+            finally:
+                await self.call("media_player", "media_stop", entity_id)
         finally:
-            await self.call("media_player", "media_stop", entity_id)
+            if powered:  # The show switched this TV on, so switch it off again as soon as the video ends.
+                await self._power_down(entity_id)
+
+    async def _power_down(self, entity_id):
+        """Put a TV the show switched on back as it was (source, then off) right after its video."""
+        saved = self.snapshot.get(entity_id)
+        if saved and await self._restore_one(entity_id, saved):
+            for group in (self._touched_media, self._video_media, self._powered_media):
+                group.discard(entity_id)
+            await self.save()

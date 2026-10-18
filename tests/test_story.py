@@ -342,19 +342,35 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         self.assertTrue(engine.running)
         await engine.stop()
 
-    async def test_video_power_and_source_restoration(self):
+    async def test_tv_switched_on_by_the_show_is_switched_off_right_after_the_video(self):
         opts = normalize({'lights': ['light.a']})
         opts['zones'][0].update(video_players=['media_player.tv'], video_power_on=True)
         engine, hass, states = make(opts)
         states['media_player.tv'] = State('off', source='HDMI 1', volume_level=.3)
         await engine.start()
-        await engine.effect(scene='apparition')
+        await engine.effect(scene='screen')
         await complete(engine)
-        self.assertIn('media_player.tv', engine._powered_media)
-        self.assertTrue(any(c[1] == 'play_media' and c[2].get('media_content_type') == 'video/mp4' for c in hass.calls))
+        tv = [c[1] for c in hass.calls if c[2].get('entity_id') == 'media_player.tv']
+        self.assertEqual(tv[:2], ['turn_on', 'play_media'])
+        self.assertLess(tv.index('media_stop'), tv.index('select_source'))
+        self.assertLess(tv.index('select_source'), tv.index('turn_off'))
+        self.assertEqual(tv.count('turn_off'), 1)  # off already, before the session ends
+        self.assertFalse(engine._powered_media | engine._video_media)
+        self.assertTrue(engine.running)
         await engine.stop()
-        self.assertIn(('media_player', 'turn_off', {'entity_id': 'media_player.tv'}), hass.calls)
-        self.assertIn(('media_player', 'select_source', {'entity_id': 'media_player.tv', 'source': 'HDMI 1'}), hass.calls)
+        self.assertEqual([c[1] for c in hass.calls if c[2].get('entity_id') == 'media_player.tv'].count('turn_off'), 1)
+        self.assertFalse(engine.snapshot)
+
+    async def test_tv_that_was_already_on_is_left_on(self):
+        opts = normalize({'lights': ['light.a']})
+        opts['zones'][0].update(video_players=['media_player.tv'], video_power_on=True)
+        engine, hass, states = make(opts)
+        states['media_player.tv'] = State('idle', source='HDMI 1')
+        await engine.start()
+        await engine.effect(scene='screen')
+        await complete(engine)
+        await engine.stop()
+        self.assertFalse([c for c in hass.calls if c[1] in ('turn_on', 'turn_off') and c[2].get('entity_id') == 'media_player.tv'])
 
     async def test_history_bounded_and_persisted(self):
         engine, hass, states = make()

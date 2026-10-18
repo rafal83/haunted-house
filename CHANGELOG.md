@@ -1,5 +1,9 @@
 # Historique
 
+## 0.5.1 — 18 octobre 2026
+
+- Une TV éteinte que la scène a allumée pour la vidéo est éteinte dès la fin de la vidéo (après rappel de sa source), et non plus seulement à la fin de la session ou du test. Une TV déjà allumée reste allumée.
+
 ## 0.5.0 — 18 octobre 2026
 
 - **Scènes cohérentes et différentes** : chaque scène a sa propre signature et n'utilise que les appareils qui lui conviennent. Bougies (lumière seule, silencieuse), Cimetière (brume et voix, sans scintillement), Orage (éclairs puis tonnerre), Apparition (le grand sursaut), Maison hantée (lueur rouge qui respire, jamais de cri), Sons spatialisés, On frappe et Chuchotements (son seul), Poursuite (les lampes s'éteignent une à une), Rire derrière vous.
