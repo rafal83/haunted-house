@@ -18,6 +18,7 @@ class StoryFeatures:
     def init_story(self):
         self._story_task = None
         self._video_rejected = set()  # Players that refused video playback; not retried until reload.
+        self._video_type = {}  # Content type each player accepted: a MIME type first (Cast, DLNA), then plain "video".
         self.test_choice = {}
         self._reserved_zones = set()
         self._branch_tasks = {}
@@ -313,8 +314,14 @@ class StoryFeatures:
             if not await self.call("media_player", "turn_on", entity_id):
                 return
             await self.pause(2)
-        if not await self.call("media_player", "play_media", entity_id,
-                               media_content_id=url, media_content_type="video"):
+        played = False
+        for media_type in dict.fromkeys([self._video_type.get(entity_id, "video/mp4"), "video/mp4", "video"]):
+            if await self.call("media_player", "play_media", entity_id,
+                               media_content_id=url, media_content_type=media_type):
+                self._video_type[entity_id] = media_type
+                played = True
+                break
+        if not played:
             # e.g. Android TV Remote only launches apps/URLs. Do not stop or restore a player that played nothing.
             self._video_rejected.add(entity_id)
             if not was_touched:

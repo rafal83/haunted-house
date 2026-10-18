@@ -1,5 +1,9 @@
 # Historique
 
+## 0.4.4 — 18 octobre 2026
+
+- Les vidéos sont envoyées avec le type `video/mp4` (attendu par Cast et DLNA), avec repli sur `video` ; le type accepté par chaque lecteur est mémorisé.
+
 ## 0.4.3 — 18 octobre 2026
 
 - Un lecteur qui refuse la vidéo (par exemple Android TV Remote : « Invalid media type: video ») est noté dans le journal (`player_refused_video`), n'est plus réessayé à chaque scène et n'est ni arrêté ni restauré inutilement.

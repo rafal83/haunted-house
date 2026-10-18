@@ -168,6 +168,26 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         await engine.stop()
         self.assertFalse(any(c[1] == 'media_stop' and c[2]['entity_id'] == 'media_player.tv' for c in hass.calls))
 
+    async def test_video_falls_back_to_plain_video_type(self):
+        opts = normalize({'lights': ['light.a']})
+        opts['zones'][0].update(video_players=['media_player.tv'])
+        engine, hass, states = make(opts)
+        states['media_player.tv'] = State('idle')
+        original = hass.services.async_call
+
+        async def picky(domain, service, data, **kwargs):
+            if data.get('media_content_type') == 'video/mp4':
+                raise RuntimeError('mime not accepted')
+            await original(domain, service, data, **kwargs)
+        hass.services.async_call = picky
+        await engine.start()
+        with self.assertLogs(engine_mod.__name__, level='ERROR'):
+            await engine._video('maison')
+        plays = [c for c in hass.calls if c[1] == 'play_media']
+        self.assertEqual([c[2]['media_content_type'] for c in plays], ['video'])
+        self.assertEqual(engine._video_type['media_player.tv'], 'video')
+        await engine.stop()
+
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
         opts['ghost_route'] = ['salon', 'maison']
@@ -271,7 +291,7 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         await engine.effect(scene='apparition')
         await complete(engine)
         self.assertIn('media_player.tv', engine._powered_media)
-        self.assertTrue(any(c[1] == 'play_media' and c[2].get('media_content_type') == 'video' for c in hass.calls))
+        self.assertTrue(any(c[1] == 'play_media' and c[2].get('media_content_type') == 'video/mp4' for c in hass.calls))
         await engine.stop()
         self.assertIn(('media_player', 'turn_off', {'entity_id': 'media_player.tv'}), hass.calls)
         self.assertIn(('media_player', 'select_source', {'entity_id': 'media_player.tv', 'source': 'HDMI 1'}), hass.calls)
