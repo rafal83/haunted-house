@@ -8,7 +8,7 @@ from .entity import HauntedEntity
 async def async_setup_entry(hass, entry, async_add_entities):
     engine = hass.data[DOMAIN][entry.entry_id]
     async_add_entities([HauntedButton(engine, True), HauntedButton(engine, False),
-                        GhostButton(engine), *[ZoneButton(engine, z) for z in engine.zones.values()],
+                        DiscardButton(engine), GhostButton(engine), *[ZoneButton(engine, z) for z in engine.zones.values()],
                         *[TestButton(engine, z, preview) for z in engine.zones.values() for preview in (True, False)]])
 
 
@@ -24,6 +24,17 @@ class HauntedButton(HauntedEntity, ButtonEntity):
             await self.engine.stop()
         else:
             await self.engine.effect(scare=True)
+
+
+class DiscardButton(HauntedEntity, ButtonEntity):
+    def __init__(self, engine):
+        super().__init__(engine, "discard_restoration", "Abandonner la restauration", "mdi:backup-restore")
+
+    async def async_press(self):
+        try:
+            await self.engine.discard_restoration()
+        except ValueError as err:
+            raise HomeAssistantError(str(err)) from err
 
 
 class ZoneButton(HauntedEntity, ButtonEntity):

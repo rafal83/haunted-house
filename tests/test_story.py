@@ -111,6 +111,29 @@ class StoryTests(unittest.IsolatedAsyncioTestCase):
         finally:
             del sys.modules['homeassistant.helpers.network']
 
+    async def test_none_attributes_are_not_restored_and_discard_unblocks(self):
+        engine, hass, states = make({'lights': ['light.a'], 'media_players': ['media_player.a']})
+        states['light.a'].attributes['effect'] = None
+        states['media_player.a'].attributes['source'] = None
+        await engine.start()
+        self.assertNotIn('effect', engine.snapshot['light.a']['attributes'])
+        self.assertNotIn('source', engine.snapshot['media_player.a']['attributes'])
+        await engine.stop()
+        self.assertFalse(engine.snapshot)
+        # A legacy snapshot with None values is restored without sending them.
+        engine.snapshot = {'light.a': {'state': 'on', 'attributes': {'brightness': 10, 'effect': None}}}
+        hass.calls.clear()
+        await engine._restore()
+        self.assertEqual(hass.calls, [('light', 'turn_on', {'entity_id': 'light.a', 'brightness': 10})])
+        # A device that always fails keeps the snapshot until it is discarded.
+        hass.fail.add('light.a')
+        engine.snapshot = {'light.a': {'state': 'on', 'attributes': {}}}
+        await engine.stop()
+        self.assertTrue(engine.snapshot)
+        await engine.discard_restoration()
+        self.assertFalse(engine.snapshot)
+        self.assertEqual(engine.last_effect, 'idle')
+
     async def test_ghost_visits_route_in_order(self):
         opts = two_zones()
         opts['ghost_route'] = ['salon', 'maison']

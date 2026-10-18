@@ -1,5 +1,10 @@
 # Historique
 
+## 0.3.2 — 18 octobre 2026
+
+- Correction : les attributs sans valeur (`effect`, `volume_level`, `source` à `None`) ne sont plus enregistrés ni renvoyés à la restauration. Ils faisaient échouer la restauration à chaque fois et bloquaient les tests (« Arrêtez la session et terminez la restauration »).
+- Nouveau bouton **Abandonner la restauration** pour débloquer un appareil qui ne peut pas être restauré.
+
 ## 0.3.1 — 18 octobre 2026
 
 - Sons et vidéos servis par l’intégration (`/haunted_house_media/`) : plus de copie manuelle dans `www`.

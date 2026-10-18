@@ -3,9 +3,9 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.3.1.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.3.2.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 43 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 44 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -242,7 +242,7 @@ La musique, les files d’attente, les groupes d’enceintes et les applications
 
 Les volets doivent avoir une classe `blind`, `curtain`, `shade` ou `shutter`, une position connue et accepter les positions. Les portes, portails, garages et volets déjà en mouvement sont exclus. Un appareil indisponible au début est ignoré jusqu’à la session suivante. Choisir pour les prises uniquement des décorations adaptées au spectacle : la nature de l’appareil branché n’est pas détectable.
 
-Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le capteur affiche `recovery_pending`, utiliser **Arrêter et restaurer**. Les échecs de restauration restent sauvegardés pour nouvel essai et bloquent un nouveau démarrage. Un arrêt normal de HA tente la restauration sans garantie si les appareils ou le réseau sont déjà arrêtés. Une commande acceptée ne garantit pas qu’un volet a atteint physiquement sa position.
+Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le capteur affiche `recovery_pending`, utiliser **Arrêter et restaurer**. Les échecs de restauration restent sauvegardés pour nouvel essai et bloquent un nouveau démarrage. Un arrêt normal de HA tente la restauration sans garantie si les appareils ou le réseau sont déjà arrêtés. Si un appareil ne peut vraiment pas être restauré (supprimé, hors ligne définitivement), le bouton **Abandonner la restauration** oublie l’instantané sans rien envoyer aux appareils ; vérifier ensuite leur état à la main. L’attribut `snapshot_entities` du capteur État liste les appareils en attente, et les événements `device_error` du journal indiquent l’entité et l’action en échec. Une commande acceptée ne garantit pas qu’un volet a atteint physiquement sa position.
 
 ## Validation et périmètre
 
@@ -250,7 +250,7 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-43 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+44 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
 Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les trois vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 

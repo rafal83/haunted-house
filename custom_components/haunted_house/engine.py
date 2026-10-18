@@ -112,7 +112,7 @@ class HauntedEngine(StoryFeatures):
                             or state.state in ("opening", "closing")):
                         continue
                     self.snapshot[entity_id] = {"state": state.state,
-                                               "attributes": {k: attrs[k] for k in ATTRS if k in attrs}}
+                                               "attributes": {k: attrs[k] for k in ATTRS if attrs.get(k) is not None}}
             if not self.snapshot:
                 raise ValueError("No available eligible entity selected")
             self._touched_media.clear()
@@ -161,7 +161,8 @@ class HauntedEngine(StoryFeatures):
 
     async def _restore_one(self, entity_id, saved):
         domain = entity_id.split(".", 1)[0]
-        attrs = saved["attributes"]
+        # Older snapshots may hold None values (e.g. effect, volume_level) that service schemas reject.
+        attrs = {k: v for k, v in saved["attributes"].items() if v is not None}
         if domain == "media_player":
             ok = True
             if entity_id in self._touched_media:
@@ -187,6 +188,21 @@ class HauntedEngine(StoryFeatures):
                 data["effect"] = attrs["effect"]
             return await self.call(domain, "turn_on", entity_id, **data)
         return await self.call(domain, "turn_on" if saved["state"] == "on" else "turn_off", entity_id)
+
+    async def discard_restoration(self):
+        """Forget devices that cannot be restored, so a new session or test can start."""
+        async with self._lock:
+            if self.running:
+                raise ValueError("Stop the session before discarding the restoration")
+            dropped = list(self.snapshot)
+            self.snapshot = {}
+            self._touched_media.clear()
+            self._powered_media.clear()
+            self._video_media.clear()
+            await self.save()
+            self.record("restoration_discarded", entity_ids=dropped)
+            self.last_effect = "idle"
+            self.notify()
 
     async def _restore(self):
         items = list(self.snapshot.items())
