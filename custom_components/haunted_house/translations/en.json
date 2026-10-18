@@ -1,0 +1,235 @@
+{
+  "title": "Haunted House",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Haunted House — settings",
+        "description": "Profiles cap volume and brightness. No devices are selected automatically.",
+        "data": {
+          "intensity": "Intensity",
+          "sounds": "Default audio URLs, one per line",
+          "volume": "Maximum volume (0–1)",
+          "interval": "Average scene interval (seconds)",
+          "duration": "Session duration (minutes)",
+          "cover_cooldown": "Minimum cover interval per zone (seconds)",
+          "trigger_cooldown": "Minimum trigger interval per zone (seconds)"
+        }
+      },
+      "zone": {
+        "title": "Configure a zone",
+        "description": "Each controlled entity belongs to one zone. Props activate for 2 seconds. Triggers only run during an active session.The next step configures audio banks and videos.",
+        "data": {
+          "name": "Zone name",
+          "lights": "Lights",
+          "covers": "Blinds and curtains",
+          "media_players": "Speakers",
+          "switches": "Prop switches",
+          "triggers": "Triggers: presence, opening, button, event",
+          "scenes": "Allowed automatic scenes",
+          "trigger_scene": "Scene on trigger",
+          "sounds": "Zone audio URLs (empty = defaults)",
+          "video_players": "TV/projector media players",
+          "intensity": "Zone profile",
+          "kids_mode": "Children mode for this zone",
+          "reactive_lights": "Lights that relight after being switched off",
+          "branch_enabled": "Enable presence branches",
+          "next_zone": "Expected next room",
+          "return_zone": "Reply room after departure"
+        }
+      },
+      "zone_media": {
+        "title": "Audio and video",
+        "description": "One URL per line. Empty banks use generic audio, except for children. Children mode never uses spooky videos.",
+        "data": {
+          "sound_candle": "Candles — audio URLs",
+          "sound_graveyard": "Graveyard — audio URLs",
+          "sound_storm": "Storm — audio URLs",
+          "sound_apparition": "Apparition — audio URLs",
+          "sound_haunted": "Haunted house — audio URLs",
+          "sound_footsteps": "Footsteps — audio URLs",
+          "sound_whisper": "Whispers / breath — audio URLs",
+          "sound_knock": "Knocks — audio URLs",
+          "sound_laugh": "Laugh — audio URLs",
+          "sound_kids": "Children — audio URLs",
+          "videos": "Spooky video URLs",
+          "kids_videos": "Children video URLs",
+          "video_power_on": "Allow turning on TVs/projectors"
+        }
+      }
+    },
+    "error": {
+      "unsafe_cover": "Doors, gates and garages are excluded.",
+      "invalid_sound": "Use one http(s) or media-source:// URL per line.",
+      "empty_name": "Enter a name.",
+      "empty_zone": "Choose at least one device.",
+      "duplicate_entity": "An entity is duplicated or belongs to another zone.",
+      "invalid_scene": "Choose a valid scene.",
+      "invalid_entity": "The entity domain does not match the field.",
+      "own_entity": "Haunted House controls cannot participate in a show.",
+      "no_zones": "Keep at least one zone.",
+      "last_zone": "Keep the last zone; edit it instead.",
+      "reactive_subset": "Choose only lights belonging to this zone.",
+      "invalid_profile": "Choose a valid profile.",
+      "test_busy": "Stop and restore the session before testing."
+    },
+    "abort": {
+      "already_configured": "Already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure Haunted House",
+        "description": "Changes apply only after Save. An active session will stop and restore.",
+        "menu_options": {
+          "settings": "General settings",
+          "add_zone": "Add a zone",
+          "edit_zone": "Edit a zone",
+          "remove_zone": "Remove a zone",
+          "save": "Save",
+          "story": "Story and ghost route",
+          "test_scene": "Preview and test a scene"
+        }
+      },
+      "settings": {
+        "title": "Haunted House — settings",
+        "description": "Profiles cap volume and brightness. No devices are selected automatically.",
+        "data": {
+          "intensity": "Intensity",
+          "sounds": "Default audio URLs, one per line",
+          "volume": "Maximum volume (0–1)",
+          "interval": "Average scene interval (seconds)",
+          "duration": "Session duration (minutes)",
+          "cover_cooldown": "Minimum cover interval per zone (seconds)",
+          "trigger_cooldown": "Minimum trigger interval per zone (seconds)"
+        }
+      },
+      "zone": {
+        "title": "Configure a zone",
+        "description": "Each controlled entity belongs to one zone. Props activate for 2 seconds. Triggers only run during an active session.The next step configures audio banks and videos.",
+        "data": {
+          "name": "Zone name",
+          "lights": "Lights",
+          "covers": "Blinds and curtains",
+          "media_players": "Speakers",
+          "switches": "Prop switches",
+          "triggers": "Triggers: presence, opening, button, event",
+          "scenes": "Allowed automatic scenes",
+          "trigger_scene": "Scene on trigger",
+          "sounds": "Zone audio URLs (empty = defaults)",
+          "video_players": "TV/projector media players",
+          "intensity": "Zone profile",
+          "kids_mode": "Children mode for this zone",
+          "reactive_lights": "Lights that relight after being switched off",
+          "branch_enabled": "Enable presence branches",
+          "next_zone": "Expected next room",
+          "return_zone": "Reply room after departure"
+        }
+      },
+      "edit_zone": {
+        "title": "Choose a zone",
+        "data": {
+          "zone_id": "Zone"
+        }
+      },
+      "remove_zone": {
+        "title": "Choose a zone",
+        "data": {
+          "zone_id": "Zone"
+        }
+      },
+      "save": {
+        "title": "Save"
+      },
+      "zone_media": {
+        "title": "Audio and video",
+        "description": "One URL per line. Empty banks use generic audio, except for children. Children mode never uses spooky videos.",
+        "data": {
+          "sound_candle": "Candles — audio URLs",
+          "sound_graveyard": "Graveyard — audio URLs",
+          "sound_storm": "Storm — audio URLs",
+          "sound_apparition": "Apparition — audio URLs",
+          "sound_haunted": "Haunted house — audio URLs",
+          "sound_footsteps": "Footsteps — audio URLs",
+          "sound_whisper": "Whispers / breath — audio URLs",
+          "sound_knock": "Knocks — audio URLs",
+          "sound_laugh": "Laugh — audio URLs",
+          "sound_kids": "Children — audio URLs",
+          "videos": "Spooky video URLs",
+          "kids_videos": "Children video URLs",
+          "video_power_on": "Allow turning on TVs/projectors"
+        }
+      },
+      "story": {
+        "title": "Story and ghost route",
+        "data": {
+          "progression": "Build tension and play a finale",
+          "auto_walk": "Automatically move the ghost",
+          "walk_interval": "Ghost route interval (seconds)",
+          "branch_window": "Presence branch window (seconds)",
+          "ghost_route": "Ordered ghost route (empty = zone order)",
+          "tts_entity": "Optional TTS entity, e.g. tts.piper",
+          "kids_messages": "Children phrases, one per line"
+        }
+      },
+      "test_scene": {
+        "title": "Choose a scene to test",
+        "description": "The test uses saved settings, not unsaved edits.",
+        "data": {
+          "zone_id": "Zone",
+          "scene": "Scene"
+        }
+      },
+      "test_preview": {
+        "title": "Test preview",
+        "description": "Zone: **{zone}**. Effective scene: **{scene}**.\n\nSelected devices, including restoration targets:\n{devices}\n\nThe test lasts at most 20 seconds and restores states. The show must be stopped.",
+        "data": {
+          "run_test": "Run this test"
+        }
+      },
+      "test_result": {
+        "title": "Test result",
+        "description": "{report}"
+      }
+    },
+    "error": {
+      "unsafe_cover": "Doors, gates and garages are excluded.",
+      "invalid_sound": "Use one http(s) or media-source:// URL per line.",
+      "empty_name": "Enter a name.",
+      "empty_zone": "Choose at least one device.",
+      "duplicate_entity": "An entity is duplicated or belongs to another zone.",
+      "invalid_scene": "Choose a valid scene.",
+      "invalid_entity": "The entity domain does not match the field.",
+      "own_entity": "Haunted House controls cannot participate in a show.",
+      "no_zones": "Keep at least one zone.",
+      "last_zone": "Keep the last zone; edit it instead.",
+      "reactive_subset": "Choose only lights belonging to this zone.",
+      "invalid_profile": "Choose a valid profile.",
+      "test_busy": "Stop and restore the session before testing."
+    }
+  },
+  "selector": {
+    "scenes": {
+      "options": {
+        "candle": "Candles",
+        "graveyard": "Graveyard",
+        "storm": "Storm",
+        "apparition": "Apparition",
+        "haunted": "Haunted house",
+        "spatial": "Spatial sounds",
+        "kids": "Magic pumpkin",
+        "pursuit": "Pursuit",
+        "retreat": "Laugh behind you"
+      }
+    },
+    "intensities": {
+      "options": {
+        "family": "Family",
+        "eerie": "Eerie",
+        "haunted": "Haunted",
+        "inherit": "Inherit global profile",
+        "kids": "Children"
+      }
+    }
+  }
+}

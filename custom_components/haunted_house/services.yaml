@@ -1,0 +1,102 @@
+start:
+  name: Démarrer
+  description: Sauvegarde les états puis lance toutes les zones pendant une durée
+    limitée.
+stop:
+  name: Arrêter et restaurer
+  description: Annule toutes les scènes et tente de restaurer les états sauvegardés.
+    Réessayer si des appareils étaient indisponibles.
+scare:
+  name: Déclencher une surprise
+  description: Lance la scène de déclenchement d'une zone pendant une session active.
+    Remplace la scène en cours dans cette zone et respecte le délai minimal.
+  fields:
+    zone_id:
+      name: Zone
+      description: Identifiant dans les attributs du capteur État. Vide pour une zone
+        aléatoire.
+      selector:
+        text: null
+    scene:
+      name: Scène
+      selector:
+        select:
+          options: &id001
+          - candle
+          - graveyard
+          - storm
+          - apparition
+          - haunted
+          - spatial
+          - kids
+          - pursuit
+          - retreat
+play_scene:
+  name: Jouer une scène
+  description: Lance une scène choisie dans une zone active. Respecte le même délai
+    minimal que les surprises.
+  fields:
+    zone_id:
+      name: Zone
+      description: Identifiant dans les attributs du capteur État. Vide pour une zone
+        aléatoire.
+      selector:
+        text: null
+    scene:
+      name: Scène
+      required: true
+      selector:
+        select:
+          options: *id001
+ghost_walk:
+  name: Faire circuler le fantôme
+  description: Lance un parcours entre les zones pendant une session active.
+  fields:
+    zone_ids:
+      name: Parcours ordonné des identifiants de zones
+      selector:
+        object: {}
+preview_scene:
+  name: Aperçu d’une scène
+  description: Renvoie les appareils sélectionnés sans les commander.
+  fields:
+    zone_id:
+      name: Identifiant de zone
+      required: true
+      selector:
+        text: {}
+    scene:
+      name: Scène
+      required: true
+      selector:
+        select:
+          options: *id001
+test_scene:
+  name: Tester une scène et restaurer
+  description: Exécute un test isolé de 20 secondes maximum, uniquement hors session
+    active, puis restaure.
+  fields:
+    zone_id:
+      name: Identifiant de zone
+      required: true
+      selector:
+        text: {}
+    scene:
+      name: Scène
+      required: true
+      selector:
+        select:
+          options: *id001
+history:
+  name: Lire le journal
+  description: Renvoie les dernières manifestations, avec heures, zones, déclencheurs
+    et échecs.
+  fields:
+    limit:
+      name: Nombre d’événements
+      default: 50
+      selector:
+        number:
+          min: 1
+          max: 200
+          mode: box

@@ -1,0 +1,235 @@
+{
+  "title": "Haunted House",
+  "config": {
+    "step": {
+      "user": {
+        "title": "Haunted House — réglages",
+        "description": "Les profils limitent le volume et la luminosité. Aucun appareil n’est sélectionné automatiquement.",
+        "data": {
+          "intensity": "Intensité",
+          "sounds": "URLs audio par défaut, une par ligne",
+          "volume": "Volume maximal (0–1)",
+          "interval": "Intervalle moyen entre scènes (secondes)",
+          "duration": "Durée de session (minutes)",
+          "cover_cooldown": "Délai minimal des volets par zone (secondes)",
+          "trigger_cooldown": "Délai minimal des surprises par zone (secondes)"
+        }
+      },
+      "zone": {
+        "title": "Configurer une zone",
+        "description": "Chaque appareil piloté appartient à une seule zone. Les prises sont activées 2 secondes. Les déclencheurs ne fonctionnent que pendant une session active. Le formulaire suivant configure les banques de sons et les vidéos.",
+        "data": {
+          "name": "Nom de la zone",
+          "lights": "Lumières",
+          "covers": "Volets et rideaux",
+          "media_players": "Enceintes",
+          "switches": "Prises de décoration",
+          "triggers": "Déclencheurs : présence, ouverture, bouton, événement",
+          "scenes": "Scènes automatiques autorisées",
+          "trigger_scene": "Scène sur déclenchement",
+          "sounds": "URLs audio de la zone (vide = sons par défaut)",
+          "video_players": "TV et projecteurs (lecteurs média)",
+          "intensity": "Profil de la zone",
+          "kids_mode": "Mode enfants de cette zone",
+          "reactive_lights": "Lampes qui se rallument après extinction",
+          "branch_enabled": "Activer les embranchements de présence",
+          "next_zone": "Pièce suivante attendue",
+          "return_zone": "Pièce où le fantôme répond après un départ"
+        }
+      },
+      "zone_media": {
+        "title": "Sons et vidéos",
+        "description": "Une URL par ligne. Une banque vide utilise les sons généraux, sauf pour les enfants. Aucune vidéo effrayante n’est utilisée en mode enfants.",
+        "data": {
+          "sound_candle": "Bougies — URLs audio",
+          "sound_graveyard": "Cimetière — URLs audio",
+          "sound_storm": "Orage — URLs audio",
+          "sound_apparition": "Apparition — URLs audio",
+          "sound_haunted": "Maison hantée — URLs audio",
+          "sound_footsteps": "Pas — URLs audio",
+          "sound_whisper": "Chuchotements / souffle — URLs audio",
+          "sound_knock": "Coups — URLs audio",
+          "sound_laugh": "Rire — URLs audio",
+          "sound_kids": "Enfants — URLs audio",
+          "videos": "Vidéos inquiétantes — URLs",
+          "kids_videos": "Vidéos enfants — URLs",
+          "video_power_on": "Autoriser l’allumage des TV/projecteurs éteints"
+        }
+      }
+    },
+    "error": {
+      "unsafe_cover": "Les portes, portails et garages sont exclus.",
+      "invalid_sound": "Utilisez une URL http(s) ou media-source:// par ligne.",
+      "empty_name": "Indiquez un nom.",
+      "empty_zone": "Choisissez au moins un appareil.",
+      "duplicate_entity": "Cette entité appartient déjà à une autre zone ou est sélectionnée deux fois.",
+      "invalid_scene": "Choisissez une scène valide.",
+      "invalid_entity": "Le type de cette entité ne correspond pas à ce champ.",
+      "own_entity": "Les contrôles de Haunted House ne peuvent pas participer au spectacle.",
+      "no_zones": "Conservez au moins une zone.",
+      "last_zone": "La dernière zone doit être conservée ; vous pouvez la modifier.",
+      "reactive_subset": "Choisissez uniquement des lampes de cette zone.",
+      "invalid_profile": "Choisissez un profil valide.",
+      "test_busy": "Arrêtez la session et terminez la restauration avant un test."
+    },
+    "abort": {
+      "already_configured": "Une instance est déjà configurée."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configurer Haunted House",
+        "description": "Les modifications ne sont appliquées qu’en choisissant « Enregistrer ». Une session en cours sera arrêtée et restaurée.",
+        "menu_options": {
+          "settings": "Réglages généraux",
+          "add_zone": "Ajouter une zone",
+          "edit_zone": "Modifier une zone",
+          "remove_zone": "Supprimer une zone",
+          "save": "Enregistrer",
+          "story": "Histoire et parcours",
+          "test_scene": "Prévisualiser et tester une scène"
+        }
+      },
+      "settings": {
+        "title": "Haunted House — réglages",
+        "description": "Les profils limitent le volume et la luminosité. Aucun appareil n’est sélectionné automatiquement.",
+        "data": {
+          "intensity": "Intensité",
+          "sounds": "URLs audio par défaut, une par ligne",
+          "volume": "Volume maximal (0–1)",
+          "interval": "Intervalle moyen entre scènes (secondes)",
+          "duration": "Durée de session (minutes)",
+          "cover_cooldown": "Délai minimal des volets par zone (secondes)",
+          "trigger_cooldown": "Délai minimal des surprises par zone (secondes)"
+        }
+      },
+      "zone": {
+        "title": "Configurer une zone",
+        "description": "Chaque appareil piloté appartient à une seule zone. Les prises sont activées 2 secondes. Les déclencheurs ne fonctionnent que pendant une session active. Le formulaire suivant configure les banques de sons et les vidéos.",
+        "data": {
+          "name": "Nom de la zone",
+          "lights": "Lumières",
+          "covers": "Volets et rideaux",
+          "media_players": "Enceintes",
+          "switches": "Prises de décoration",
+          "triggers": "Déclencheurs : présence, ouverture, bouton, événement",
+          "scenes": "Scènes automatiques autorisées",
+          "trigger_scene": "Scène sur déclenchement",
+          "sounds": "URLs audio de la zone (vide = sons par défaut)",
+          "video_players": "TV et projecteurs (lecteurs média)",
+          "intensity": "Profil de la zone",
+          "kids_mode": "Mode enfants de cette zone",
+          "reactive_lights": "Lampes qui se rallument après extinction",
+          "branch_enabled": "Activer les embranchements de présence",
+          "next_zone": "Pièce suivante attendue",
+          "return_zone": "Pièce où le fantôme répond après un départ"
+        }
+      },
+      "edit_zone": {
+        "title": "Choisir une zone",
+        "data": {
+          "zone_id": "Zone"
+        }
+      },
+      "remove_zone": {
+        "title": "Choisir une zone",
+        "data": {
+          "zone_id": "Zone"
+        }
+      },
+      "save": {
+        "title": "Enregistrer"
+      },
+      "zone_media": {
+        "title": "Sons et vidéos",
+        "description": "Une URL par ligne. Une banque vide utilise les sons généraux, sauf pour les enfants. Aucune vidéo effrayante n’est utilisée en mode enfants.",
+        "data": {
+          "sound_candle": "Bougies — URLs audio",
+          "sound_graveyard": "Cimetière — URLs audio",
+          "sound_storm": "Orage — URLs audio",
+          "sound_apparition": "Apparition — URLs audio",
+          "sound_haunted": "Maison hantée — URLs audio",
+          "sound_footsteps": "Pas — URLs audio",
+          "sound_whisper": "Chuchotements / souffle — URLs audio",
+          "sound_knock": "Coups — URLs audio",
+          "sound_laugh": "Rire — URLs audio",
+          "sound_kids": "Enfants — URLs audio",
+          "videos": "Vidéos inquiétantes — URLs",
+          "kids_videos": "Vidéos enfants — URLs",
+          "video_power_on": "Autoriser l’allumage des TV/projecteurs éteints"
+        }
+      },
+      "story": {
+        "title": "Histoire et parcours",
+        "data": {
+          "progression": "Montée de tension et scène finale",
+          "auto_walk": "Faire circuler le fantôme automatiquement",
+          "walk_interval": "Intervalle des parcours (secondes)",
+          "branch_window": "Délai de poursuite ou de départ (secondes)",
+          "ghost_route": "Parcours ordonné du fantôme (vide = ordre des zones)",
+          "tts_entity": "Entité TTS facultative, par exemple tts.piper",
+          "kids_messages": "Phrases pour les enfants, une par ligne"
+        }
+      },
+      "test_scene": {
+        "title": "Choisir une scène à tester",
+        "description": "Le test utilise la configuration enregistrée, pas les modifications non sauvegardées.",
+        "data": {
+          "zone_id": "Zone",
+          "scene": "Scène"
+        }
+      },
+      "test_preview": {
+        "title": "Aperçu avant le test",
+        "description": "Zone : **{zone}**. Scène effective : **{scene}**.\n\nAppareils sélectionnés, y compris ceux susceptibles d’être restaurés :\n{devices}\n\nLe test est limité à 20 secondes et restaure les états. Le mode hanté doit être arrêté.",
+        "data": {
+          "run_test": "Lancer ce test"
+        }
+      },
+      "test_result": {
+        "title": "Résultat du test",
+        "description": "{report}"
+      }
+    },
+    "error": {
+      "unsafe_cover": "Les portes, portails et garages sont exclus.",
+      "invalid_sound": "Utilisez une URL http(s) ou media-source:// par ligne.",
+      "empty_name": "Indiquez un nom.",
+      "empty_zone": "Choisissez au moins un appareil.",
+      "duplicate_entity": "Cette entité appartient déjà à une autre zone ou est sélectionnée deux fois.",
+      "invalid_scene": "Choisissez une scène valide.",
+      "invalid_entity": "Le type de cette entité ne correspond pas à ce champ.",
+      "own_entity": "Les contrôles de Haunted House ne peuvent pas participer au spectacle.",
+      "no_zones": "Conservez au moins une zone.",
+      "last_zone": "La dernière zone doit être conservée ; vous pouvez la modifier.",
+      "reactive_subset": "Choisissez uniquement des lampes de cette zone.",
+      "invalid_profile": "Choisissez un profil valide.",
+      "test_busy": "Arrêtez la session et terminez la restauration avant un test."
+    }
+  },
+  "selector": {
+    "scenes": {
+      "options": {
+        "candle": "Bougies",
+        "graveyard": "Cimetière",
+        "storm": "Orage",
+        "apparition": "Apparition",
+        "haunted": "Maison hantée",
+        "spatial": "Sons spatialisés",
+        "kids": "Citrouille magique",
+        "pursuit": "Poursuite",
+        "retreat": "Rire derrière vous"
+      }
+    },
+    "intensities": {
+      "options": {
+        "family": "Familiale",
+        "eerie": "Inquiétante",
+        "haunted": "Maison hantée",
+        "inherit": "Hériter du profil général",
+        "kids": "Enfants"
+      }
+    }
+  }
+}
