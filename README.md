@@ -1,8 +1,11 @@
 # Haunted House v3 👻 — Home Assistant
 
+[![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
+[![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
+
 **Version 0.3.1.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
-**Statut : prototype. Les 42 tests de comportement et de séquencement utilisent des doubles des APIs HA. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
+**Statut : prototype. Les 43 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
 ## Installation et mise à jour
 
@@ -11,18 +14,18 @@
 1. HACS → menu ⋮ → **Dépôts personnalisés**.
 2. Ajouter `https://github.com/rafal83/haunted-house` avec le type **Intégration**.
 3. Chercher **Haunted House**, **Télécharger**, puis redémarrer Home Assistant.
-4. Les sons sont inclus dans l’intégration : rien d’autre à copier (voir « Sons et vidéos inclus »).
+4. Les sons sont inclus dans l’intégration : rien d’autre à copier (voir « TV, projecteur et médias inclus »).
 
 ### Manuellement
 
 1. Si une ancienne version est installée, arrêter le mode hanté puis utiliser **Arrêter et restaurer**. Terminer toute récupération en attente.
 2. Copier ou remplacer le dossier `custom_components/haunted_house` dans `/config/custom_components/haunted_house`. Garder la configuration et les données `.storage`.
-4. Redémarrer Home Assistant.
-5. Nouvelle installation : **Paramètres → Appareils et services → Ajouter une intégration → Haunted House**. Mise à jour : ouvrir l’intégration existante.
+3. Redémarrer Home Assistant.
+4. Nouvelle installation : **Paramètres → Appareils et services → Ajouter une intégration → Haunted House**. Mise à jour : ouvrir l’intégration existante.
 
 La configuration v1 est convertie en une zone **Maison**. Les zones et réglages v2 sont conservés. Les nouveaux champs sont ajoutés avec leurs valeurs par défaut : progression activée, parcours automatique désactivé, lampes réactives et vidéos non sélectionnées. Les commandes globales conservent leurs identifiants. Les sauvegardes de récupération des anciennes versions restent lisibles.
 
-Le paquet s’installe via HACS (dépôt personnalisé) ou manuellement. Il n’est pas dans le catalogue HACS par défaut.
+Le paquet s’installe via HACS (dépôt personnalisé) ou manuellement. Il n’est pas dans le catalogue HACS par défaut. Avec HACS, les mises à jour apparaissent à chaque nouvelle release GitHub ; redémarrer HA après la mise à jour.
 
 ## Démarrage rapide
 
@@ -32,7 +35,7 @@ Le paquet s’installe via HACS (dépôt personnalisé) ou manuellement. Il n’
 4. Ajouter les autres pièces, puis définir **Histoire et parcours**.
 5. Activer **Mode hanté**. Utiliser le bouton **Faire circuler le fantôme** pour lancer un parcours immédiatement.
 
-`ADRESSE_HA` doit être remplacée par une adresse joignable depuis les enceintes et TV. Aucun appareil n’est sélectionné automatiquement.
+Pour vos propres sons, `ADRESSE_HA` doit être remplacée par une adresse joignable depuis les enceintes et TV. Sans URL, les sons inclus utilisent l’URL interne de Home Assistant. Aucun appareil n’est sélectionné automatiquement.
 
 ## Les ajouts de la v3
 
@@ -45,6 +48,7 @@ Le paquet s’installe via HACS (dépôt personnalisé) ou manuellement. Il n’
 | TV/projecteur | Lecture d’une apparition ou d’un faux écran de surveillance sur un lecteur vidéo compatible HA |
 | Embranchements | Poursuite si une détection arrive dans la pièce suivante ; réaction après un départ sans nouvelle détection |
 | Mode enfants | Profil et médias propres à chaque zone, couleurs douces, carillon ou phrases TTS, aucun mouvement de volet |
+| Sons inclus | Sons servis par l’intégration et utilisés quand une banque est vide, sans copie dans `www` |
 | Aperçu et test | Liste des appareils, test isolé d’une seule zone et restauration automatique |
 | Historique | 200 événements conservés : heures, zones, scènes, déclencheurs, interruptions et échecs d’appareils |
 
@@ -246,9 +250,9 @@ Après un redémarrage brutal, aucune scène ne reprend automatiquement. Si le c
 python3 -m unittest discover -s tests -v
 ```
 
-42 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
+43 tests couvrent les modèles, les neuf scènes, les options en plusieurs étapes, la conservation des médias après édition, les parcours, réactions, embranchements, profils enfants, TTS, lecture vidéo, aperçu, test isolé, interruption pendant un test, journal et restauration. Les tests de formulaire utilisent eux aussi des doubles : ils vérifient le séquencement, pas le rendu frontend ni les schémas HA réels.
 
-Les fichiers Python, JSON et YAML sont vérifiés. Les trois vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
+Le workflow GitHub `Validate` lance hassfest et la validation HACS à chaque push. Les fichiers Python, JSON et YAML sont vérifiés. Les trois vidéos sont décodées et leur durée contrôlée. Cette validation ne remplace pas un essai dans votre instance HA avec votre matériel.
 
 Domaines pilotés : `light`, `cover`, `media_player`, `switch`, plus une entité `tts` explicitement configurée pour la voix. Déclencheurs : `binary_sensor`, `input_button`, `event`. La v3 n’ajoute pas de contrôle arbitraire des autres domaines.
 
