@@ -1,5 +1,9 @@
 # Historique
 
+## 0.4.2 — 18 octobre 2026
+
+- Correction : l'appareil de chaque zone est rattaché à l'appareil principal avec `via_device_id` (le paramètre `via_device` est déprécié dans Home Assistant et disparaîtra en 2027.8).
+
 ## 0.4.1 — 18 octobre 2026
 
 - Option **Remettre les lumières normales entre deux scènes** (activée par défaut) : les lampes de la zone reviennent à leur état d'avant le spectacle à la fin de chaque scène.

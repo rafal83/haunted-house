@@ -13,8 +13,9 @@ def device_info(entry_id, zone=None):
     if zone is None:
         return {"identifiers": {(DOMAIN, entry_id)}, "name": "Haunted House",
                 "manufacturer": "Community prototype", "model": f"Haunted House {VERSION}"}
+    # The link to the main device is set by the registry in __init__ (via_device_id), not here.
     return {"identifiers": {(DOMAIN, f"{entry_id}_{zone['id']}")}, "name": f"Haunted House {zone['name']}",
-            "manufacturer": "Community prototype", "model": "Zone", "via_device": (DOMAIN, entry_id)}
+            "manufacturer": "Community prototype", "model": "Zone"}
 
 
 class HauntedEntity(Entity):

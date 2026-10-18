@@ -9,6 +9,7 @@ from homeassistant.helpers import device_registry as dr
 from homeassistant.helpers.event import async_track_state_change_event
 from .const import DOMAIN, MEDIA_URL_PATH, PLATFORMS, SCENES, SERVICES
 from .engine import HauntedEngine
+from .entity import device_info
 from .model import normalize
 
 
@@ -79,15 +80,22 @@ async def async_setup_entry(hass, entry):
 
     entry.async_on_unload(hass.bus.async_listen_once(EVENT_HOMEASSISTANT_STOP, shutdown))
     entry.async_on_unload(entry.add_update_listener(async_reload_entry))
-    _remove_stale_zone_devices(hass, entry, engine)
+    _sync_devices(hass, entry, engine)
     await hass.config_entries.async_forward_entry_setups(entry, PLATFORMS)
     return True
 
 
-def _remove_stale_zone_devices(hass, entry, engine):
-    """Drop devices of zones that no longer exist."""
-    keep = {entry.entry_id, *[f"{entry.entry_id}_{zone_id}" for zone_id in engine.zones]}
+def _sync_devices(hass, entry, engine):
+    """Create the main device and one child device per zone; drop devices of removed zones."""
     registry = dr.async_get(hass)
+    main = registry.async_get_or_create(config_entry_id=entry.entry_id, **device_info(entry.entry_id))
+    keep = {entry.entry_id}
+    for zone in engine.zones.values():
+        info = device_info(entry.entry_id, zone)
+        device = registry.async_get_or_create(config_entry_id=entry.entry_id, **info)
+        if device.via_device_id != main.id:
+            registry.async_update_device(device.id, via_device_id=main.id)
+        keep.update(ident for domain, ident in info["identifiers"] if domain == DOMAIN)
     for device in dr.async_entries_for_config_entry(registry, entry.entry_id):
         if not any(domain == DOMAIN and ident in keep for domain, ident in device.identifiers):
             registry.async_remove_device(device.id)

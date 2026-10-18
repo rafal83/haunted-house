@@ -3,7 +3,7 @@
 [![Validate](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml/badge.svg)](https://github.com/rafal83/haunted-house/actions/workflows/validate.yml)
 [![HACS Custom](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://hacs.xyz)
 
-**Version 0.4.1.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
+**Version 0.4.2.** Une ambiance hantée locale avec des scènes par pièce, un fantôme qui se déplace, des réactions aux personnes, une progression narrative, des sons et vidéos, et un mode enfants.
 
 **Statut : prototype. Les 48 tests de comportement et de séquencement utilisent des doubles des APIs HA ; hassfest et la validation HACS passent sur GitHub. Le chargement dans un vrai Home Assistant, les sélecteurs du frontend et les appareils physiques restent à valider.** Cible : Home Assistant Core 2025.12 ou ultérieur.
 
